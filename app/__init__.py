@@ -1,0 +1,3 @@
+"""AutoAudit: sistema de auditoría automatizado sobre PostgreSQL."""
+
+__version__ = "1.0.0"

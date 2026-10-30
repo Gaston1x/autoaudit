@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}Diccionario de datos{% endblock %}
+{% block icono %}bi-book{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / Diccionario de datos{% endblock %}
+{% block encabezado %}Diccionario de <span class="resalte">datos</span>{% endblock %}
+{% block subtitulo %}Generado en vivo desde el catálogo de PostgreSQL y los comentarios de cada tabla y columna.{% endblock %}
+{% block acciones_portada %}
+<form class="d-flex flex-wrap align-items-center gap-2" method="get">
+  <select class="form-select form-select-sm" name="esquema" onchange="this.form.submit()" style="min-width:150px">
+    {% for e in ['autoaudit', 'demo'] %}<option {{ 'selected' if e == esquema }}>{{ e }}</option>{% endfor %}
+  </select>
+  {% for fmt, ico in [('csv', 'bi-filetype-csv'), ('xlsx', 'bi-file-earmark-excel'), ('pdf', 'bi-file-earmark-pdf')] %}<a class="btn btn-sm btn-portada" href="/diccionario?esquema={{ esquema }}&formato={{ fmt }}"><i class="bi {{ ico }} me-1"></i>{{ fmt|upper }}</a>{% endfor %}
+</form>
+{% endblock %}
+{% block contenido %}
+<div class="tarjeta mb-3 aparece d1 d-flex flex-wrap gap-2 align-items-center">
+  <span class="fw-bold texto-navy me-2"><i class="bi bi-list-ul me-1 texto-cian"></i>Ir a:</span>
+  {% for nombre in tablas %}<a class="pastilla" href="#t-{{ nombre }}">{{ nombre }}</a>{% endfor %}
+</div>
+{% for nombre, t in tablas.items() %}
+<div class="tarjeta tarjeta-sin-padding mb-3 aparece d{{ [loop.index + 1, 6]|min }}" id="t-{{ nombre }}" style="scroll-margin-top:110px">
+  <div class="px-3 pt-3"><div class="tarjeta-titulo mb-1"><i class="bi bi-table"></i>{{ nombre }}</div><p class="text-secondary small mb-2">{{ t.comentario or '' }}</p></div>
+  <div class="table-responsive"><table class="tabla">
+    <thead><tr><th>#</th><th>Columna</th><th>Tipo</th><th>Nulo</th><th>Por defecto</th><th>Llave</th><th>Referencia</th><th>Descripción</th></tr></thead>
+    <tbody>{% for c in t.columnas %}<tr><td class="text-secondary">{{ c.posicion }}</td><td class="fw-bold texto-navy">{{ c.columna }}</td><td><code>{{ c.tipo_dato }}</code></td><td>{{ c.nulo }}</td>
+      <td class="small text-secondary">{{ c.valor_defecto or '' }}</td><td>{% if c.llave %}<span class="pastilla oro">{{ c.llave }}</span>{% endif %}</td><td class="small">{{ c.referencia or '' }}</td><td class="small">{{ c.descripcion or '' }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endfor %}
+{% endblock %}

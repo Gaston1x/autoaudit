@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block titulo %}Iniciar sesión{% endblock %}
+{% block pagina %}
+<div class="login-pagina">
+  <div class="container-xl px-3">
+    <div class="row g-4 align-items-stretch">
+      <div class="col-lg-7">
+        <section class="login-panel">
+          <a class="marca mb-4" href="/login"><span class="marca-logo"><i class="bi bi-shield-check"></i></span>AutoAudit</a>
+          <h1>Cada cambio en tus datos, <span class="resalte">registrado</span>.</h1>
+          <p class="lead mt-2 mb-4">Elige qué tablas y columnas vigilar. AutoAudit genera los triggers en PostgreSQL y guarda quién cambió qué, cuándo y desde dónde.</p>
+          <div style="max-width:520px">
+            <div class="muestra"><span class="op op-UPDATE">UPDATE</span><span><code>clientes.limite_credito</code> 1000.00 → <strong>2500.00</strong></span><span class="ms-auto text-secondary small">cajero1</span></div>
+            <div class="muestra"><span class="op op-INSERT">INSERT</span><span><code>productos.precio</code> nuevo: <strong>175.00</strong></span><span class="ms-auto text-secondary small">cajero2</span></div>
+            <div class="muestra"><span class="op op-DELETE">DELETE</span><span><code>clientes</code> fila preservada en la bitácora</span><span class="ms-auto text-secondary small">admin</span></div>
+          </div>
+        </section>
+      </div>
+      <div class="col-lg-5 d-flex align-items-center">
+        <div class="login-tarjeta w-100">
+          <h2 class="mb-1">Iniciar sesión</h2>
+          <p class="text-secondary mb-4">Ingresa con tu usuario de PostgreSQL.</p>
+          {% if error %}<div class="alert alert-danger aviso py-2"><i class="bi bi-x-circle"></i><div class="texto">{{ error }}</div></div>{% endif %}
+          <form method="post" action="/login">
+            <label class="form-label" for="usuario">Usuario</label>
+            <div class="campo-icono mb-3"><i class="bi bi-person"></i><input class="form-control" id="usuario" name="usuario" value="{{ usuario or '' }}" required autofocus autocomplete="username"></div>
+            <label class="form-label" for="clave">Contraseña</label>
+            <div class="campo-icono mb-4"><i class="bi bi-lock"></i><input class="form-control" id="clave" type="password" name="clave" required autocomplete="current-password"></div>
+            <button class="btn btn-primario w-100 py-2" type="submit">Entrar</button>
+          </form>
+          <div class="separador"></div>
+          <p class="small text-secondary mb-0">Los permisos vienen de los roles de la base de datos: <code>autoaudit_admin</code> configura y <code>autoaudit_lector</code> consulta.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

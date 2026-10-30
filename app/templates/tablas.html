@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Configuración{% endblock %}
+{% block icono %}bi-sliders{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / Configuración{% endblock %}
+{% block encabezado %}Configuración de <span class="resalte">auditoría</span>{% endblock %}
+{% block subtitulo %}Tablas existentes según el diccionario de datos (<code>pg_catalog</code>). Elige una para marcar columnas y eventos.{% endblock %}
+{% block contenido %}
+{% set total = tablas|length %}{% set auditadas = tablas|selectattr('auditada')|list|length %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4 aparece d1"><div class="tarjeta kpi elevable"><div class="etiqueta">Tablas en la base</div><div class="valor"><span data-contar="{{ total }}">0</span></div><span class="ico-kpi"><i class="bi bi-database"></i></span></div></div>
+  <div class="col-md-4 aparece d2"><div class="tarjeta kpi elevable"><div class="etiqueta">Con auditoría activa</div><div class="valor"><span data-contar="{{ auditadas }}">0</span></div><span class="ico-kpi"><i class="bi bi-shield-check"></i></span></div></div>
+  <div class="col-md-4 aparece d3"><div class="tarjeta kpi elevable"><div class="etiqueta">Sin auditar</div><div class="valor"><span data-contar="{{ total - auditadas }}">0</span></div><span class="ico-kpi"><i class="bi bi-shield"></i></span></div></div>
+</div>
+<div class="tarjeta tarjeta-sin-padding aparece d4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 pt-3 pb-2">
+    <div class="tarjeta-titulo mb-0"><i class="bi bi-table"></i>Tablas disponibles</div>
+    <div class="campo-icono" style="min-width:260px"><i class="bi bi-search"></i><input class="form-control form-control-sm" placeholder="Filtrar tablas..." data-filtro="#tablas"></div>
+  </div>
+  <div class="table-responsive"><table class="tabla" id="tablas">
+    <thead><tr><th>Esquema</th><th>Tabla</th><th>Filas (aprox.)</th><th>Llave primaria</th><th>Descripción</th><th>Auditoría</th><th></th></tr></thead>
+    <tbody>
+    {% for t in tablas %}
+    <tr>
+      <td><span class="pastilla">{{ t.esquema }}</span></td>
+      <td class="fw-bold texto-navy">{{ t.tabla }}</td>
+      <td>{{ t.filas_estimadas }}</td>
+      <td>{% if t.tiene_pk %}<i class="bi bi-key-fill text-warning"></i> Sí{% else %}<span class="text-secondary">No</span>{% endif %}</td>
+      <td class="text-secondary small">{{ t.comentario or '' }}</td>
+      <td>{% if t.auditada %}<span class="estado estado-OK">Activa</span>{% if not t.trigger_activo %} <span class="estado estado-PENDIENTE">sin trigger</span>{% endif %}{% else %}<span class="estado estado-SIN_AUDITORIA">Inactiva</span>{% endif %}</td>
+      <td class="text-end"><a class="btn btn-sm {{ 'btn-primario' if sesion.es_admin else 'btn-contorno' }}" href="/tablas/{{ t.esquema }}/{{ t.tabla }}">{{ 'Configurar' if sesion.es_admin else 'Ver' }} <i class="bi bi-chevron-right"></i></a></td>
+    </tr>
+    {% else %}<tr><td colspan="7" class="vacio"><i class="bi bi-database-x"></i>No hay tablas de usuario en la base de datos.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

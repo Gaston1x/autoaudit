@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>AutoAudit - Documentación técnica</title>
+<style>
+  @page { size: Letter; }
+  :root { --navy: #003865; --cyan: #00aebf; --cyan-50: #f2fcfd; --cyan-100: #eaf3f5; --texto: #3f4444; --gris: #6b7280; --borde: #dfe4e8; }
+  * { box-sizing: border-box; }
+  body { font-family: "Open Sans", Arial, sans-serif; font-size: 10.2pt; line-height: 1.5; color: var(--texto); margin: 0; }
+  h1, h2, h3, h4 { color: var(--navy); font-family: "Open Sans", Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 20pt; margin: 0 0 6mm; padding-bottom: 3mm; border-bottom: 2px solid var(--cyan); page-break-before: always; }
+  h2 { font-size: 13.5pt; margin: 7mm 0 3mm; }
+  h3 { font-size: 11pt; margin: 5mm 0 2mm; }
+  p { margin: 0 0 3mm; text-align: justify; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1mm; }
+  code { font-family: Consolas, "DejaVu Sans Mono", monospace; font-size: 8.8pt; background: var(--cyan-50); color: #00616a; padding: 0 3px; border-radius: 3px; }
+  pre { font-family: Consolas, "DejaVu Sans Mono", monospace; font-size: 8.2pt; background: #0f1e2e; color: #dbe5ee; padding: 3mm 4mm; border-radius: 4px; white-space: pre-wrap; page-break-inside: avoid; margin: 0 0 4mm; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 4mm; font-size: 8.8pt; page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  th { background: var(--navy); color: #fff; text-align: left; padding: 1.6mm 2mm; font-weight: 600; }
+  td { border-bottom: 1px solid var(--borde); padding: 1.4mm 2mm; vertical-align: top; }
+  tbody tr:nth-child(even) td { background: #f8fafb; }
+  .nota { background: var(--cyan-50); border-left: 3px solid var(--cyan); padding: 2.5mm 4mm; margin: 0 0 4mm; border-radius: 0 4px 4px 0; }
+  .figura { text-align: center; margin: 2mm 0 5mm; page-break-inside: avoid; }
+  .figura img { max-width: 100%; border: 1px solid var(--borde); border-radius: 4px; }
+  .figura .pie { font-size: 8.5pt; color: var(--gris); margin-top: 1.5mm; }
+  .er svg { width: 100%; height: 190mm; }
+  .ok { color: #0f766e; font-weight: 700; } .fallo { color: #c2410c; font-weight: 700; }
+  .pequeno { font-size: 8.4pt; color: var(--gris); }
+  .paso { display: flex; gap: 3mm; margin-bottom: 2mm; }
+  .paso .n { flex: 0 0 6mm; height: 6mm; border-radius: 50%; background: var(--navy); color: #fff; font-weight: 700; font-size: 8.5pt; display: flex; align-items: center; justify-content: center; }
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .caja { border: 1px solid var(--borde); border-radius: 6px; padding: 3mm 4mm; }
+  .caja h4 { margin: 0 0 1.5mm; font-size: 10pt; }
+
+  /* Portada */
+  .portada { height: 240mm; display: flex; flex-direction: column; justify-content: space-between; }
+  .portada .uni { text-align: center; color: var(--navy); }
+  .portada .uni .nombre { font-size: 17pt; font-weight: 700; }
+  .portada .uni .facultad { font-size: 10pt; color: var(--gris); }
+  .portada .centro { text-align: center; }
+  .portada .marca { display: inline-flex; align-items: center; gap: 4mm; }
+  .portada .logo { width: 18mm; height: 18mm; border-radius: 4mm; background: var(--navy); position: relative; color: #fff; font-size: 24pt; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .portada .logo::after { content: ""; position: absolute; top: -2mm; right: -2mm; width: 5mm; height: 5mm; border-radius: 1mm; background: #fdb913; }
+  .portada .titulo { font-size: 30pt; font-weight: 800; color: var(--navy); }
+  .portada .sub { font-size: 15pt; color: var(--cyan); font-weight: 600; margin-top: 2mm; }
+  .portada .tipo { margin-top: 6mm; font-size: 11pt; color: var(--gris); }
+  .portada .datos { width: 120mm; margin: 0 auto; font-size: 10pt; }
+  .portada .datos td { border: 0; padding: 1mm 2mm; background: none !important; }
+  .portada .datos td:first-child { color: var(--gris); width: 35mm; }
+
+  /* Índice */
+  .indice ol { list-style: none; padding: 0; counter-reset: s; }
+  .indice > ol > li { counter-increment: s; font-weight: 600; color: var(--navy); margin: 2mm 0 1mm; }
+  .indice > ol > li::before { content: counter(s) ". "; }
+  .indice ol ol { font-weight: 400; color: var(--texto); padding-left: 6mm; margin: 0.5mm 0; }
+</style>
+</head>
+<body>
+
+<!-- =============================================================== PORTADA -->
+<section class="portada">
+  <div class="uni"><div class="nombre">{{ p.universidad }}</div><div class="facultad">{{ p.facultad }}</div></div>
+  <div class="centro">
+    <div class="marca"><div class="logo">A</div><div class="titulo">AutoAudit</div></div>
+    <div class="sub">Sistema de auditoría automatizado</div>
+    <div class="tipo">Documentación técnica del proyecto · {{ p.curso }}</div>
+  </div>
+  <table class="datos">
+    <tr><td>Catedrático</td><td>{{ p.catedratico }}</td></tr>
+    <tr><td>Integrantes</td><td>{% for i in p.integrantes %}{{ i.nombre }} — {{ i.carne }}<br>{% endfor %}</td></tr>
+    <tr><td>Repositorio</td><td>{{ p.repositorio }}</td></tr>
+    <tr><td>Plataforma</td><td>PostgreSQL 18 · {{ so or 'Ubuntu 26.04 LTS' }} · Python</td></tr>
+    <tr><td>Fecha</td><td>{{ p.fecha }}</td></tr>
+  </table>
+</section>
+
+<!-- =============================================================== ÍNDICE -->
+<section class="indice">
+  <h1>Contenido</h1>
+  <ol>
+    <li>Descripción general y objetivos</li>
+    <li>Arquitectura de la solución</li>
+    <li>Modelo entidad-relación<ol><li>Diagrama</li><li>Entidades y relaciones</li></ol></li>
+    <li>Diccionario de datos</li>
+    <li>Funcionamiento interno<ol><li>Consultas al diccionario del DBMS</li><li>Generación dinámica de triggers</li><li>Bitácora</li><li>Gestión de dependencias</li><li>Consultas parametrizadas</li></ol></li>
+    <li>Manual de configuración y activación de auditoría por tabla</li>
+    <li>Procedimiento de instalación y despliegue de triggers</li>
+    <li>Seguridad y privacidad</li>
+    <li>Manejo de errores</li>
+    <li>Pruebas de validación<ol><li>Pruebas funcionales</li><li>Pruebas de rendimiento</li></ol></li>
+    <li>Matriz de cumplimiento</li>
+    <li>Anexo: estructura del repositorio y API</li>
+  </ol>
+</section>
+
+<!-- =============================================================== 1 -->
+<h1>1. Descripción general y objetivos</h1>
+<p><strong>AutoAudit</strong> es un sistema de auditoría configurable para PostgreSQL. Un administrador elige, a partir del diccionario de datos, qué tablas, qué columnas y qué operaciones (INSERT, UPDATE, DELETE) deben vigilarse. Con esa configuración el sistema genera automáticamente, en PL/pgSQL, los triggers que registran cada modificación en una bitácora centralizada, con el usuario responsable, la estación de trabajo, la fecha y hora y los valores anterior y nuevo de cada columna.</p>
+<h2>Objetivo principal</h2>
+<p>Desarrollar una solución de auditoría automática que capture cambios en tablas configurables mediante la generación dinámica de triggers, permitiendo la consulta histórica de modificaciones por usuario o por columna específica.</p>
+<h2>Objetivos específicos</h2>
+<table>
+  <tr><th style="width:52%">Objetivo</th><th>Cómo se cumple</th></tr>
+  <tr><td>Diseñar el modelo entidad-relación completo del sistema de auditoría</td><td>Esquema <code>autoaudit</code> con 12 tablas (sección 3)</td></tr>
+  <tr><td>Configuración de tablas y columnas basada en el diccionario de datos</td><td>Funciones sobre <code>pg_catalog</code> y pantalla de configuración (secciones 5.1 y 6)</td></tr>
+  <tr><td>Generación automática de triggers para INSERT, UPDATE y DELETE</td><td>Generador PL/pgSQL <code>_fn_generar_trigger</code> (sección 5.2)</td></tr>
+  <tr><td>Bitácora con información completa de cada cambio</td><td>Tablas <code>aud_bitacora</code> y <code>aud_bitacora_detalle</code> (sección 5.3)</td></tr>
+  <tr><td>Consulta histórica por usuario o por columna</td><td>Funciones parametrizadas, web y CLI con exportación (sección 5.5)</td></tr>
+</table>
+
+<!-- =============================================================== 2 -->
+<h1>2. Arquitectura de la solución</h1>
+<p>La lógica de auditoría vive dentro de la base de datos: así ningún cambio escapa, sin importar desde qué aplicación se haga. Python se usa para la interfaz web, la línea de comandos, los reportes y las pruebas.</p>
+<div class="dos-col">
+  <div class="caja"><h4>PostgreSQL 18 (PL/pgSQL)</h4><ul>
+    <li>Esquema <code>autoaudit</code>: configuración, catálogos y bitácora.</li>
+    <li>Consultas al diccionario de datos (<code>pg_catalog</code>).</li>
+    <li>Generador dinámico de triggers.</li>
+    <li>Event triggers para dependencias DDL.</li>
+    <li>Funciones de consulta parametrizadas.</li>
+    <li>Roles y permisos (seguridad).</li></ul></div>
+  <div class="caja"><h4>Python 3</h4><ul>
+    <li>Web: FastAPI + Jinja2 + Bootstrap.</li>
+    <li>Acceso a datos: psycopg 3 (consultas parametrizadas).</li>
+    <li>CLI: Typer (<code>cli.py</code>).</li>
+    <li>Reportes: CSV, Excel (openpyxl), PDF (reportlab), JSON.</li>
+    <li>Pruebas: pytest; rendimiento con matplotlib.</li>
+    <li>Documentación: este PDF se genera desde el sistema.</li></ul></div>
+</div>
+<p class="pequeno">Versión de la base de datos usada: {{ version_pg }}.</p>
+<h2>Flujo de trabajo</h2>
+<div class="paso"><div class="n">1</div><div>El administrador consulta las tablas existentes (diccionario de datos) y marca columnas y eventos.</div></div>
+<div class="paso"><div class="n">2</div><div>La configuración se valida contra el catálogo y se guarda en <code>aud_tabla</code>, <code>aud_columna</code> y <code>aud_configuracion</code>.</div></div>
+<div class="paso"><div class="n">3</div><div>El generador construye una función PL/pgSQL y un trigger <code>AFTER … FOR EACH ROW</code> específicos para esa tabla y los ejecuta.</div></div>
+<div class="paso"><div class="n">4</div><div>Cada INSERT, UPDATE o DELETE de cualquier usuario dispara el trigger, que escribe la cabecera y el detalle en la bitácora.</div></div>
+<div class="paso"><div class="n">5</div><div>Auditores y administradores consultan el historial por usuario, por columna o por registro, y lo exportan.</div></div>
+
+<!-- =============================================================== 3 -->
+<h1>3. Modelo entidad-relación</h1>
+<h2>3.1 Diagrama</h2>
+<p>Diagrama generado automáticamente a partir de las llaves foráneas reales del esquema <code>autoaudit</code>. Las flechas van de la tabla referenciada a la tabla que la referencia (uno a muchos).</p>
+<div class="figura er">{{ svg_er|safe }}<div class="pie">Figura 1. Modelo entidad-relación del esquema autoaudit (versión ampliable en <code>docs/img/er_autoaudit.svg</code>).</div></div>
+
+<h2>3.2 Entidades y relaciones</h2>
+<table>
+  <tr><th style="width:28%">Entidad requerida</th><th style="width:24%">Tabla</th><th>Descripción</th></tr>
+  <tr><td>Tablas auditadas</td><td><code>aud_tabla</code></td><td>Tablas de negocio registradas; se identifican por OID para sobrevivir a renombres.</td></tr>
+  <tr><td>Columnas auditadas</td><td><code>aud_columna</code></td><td>Columnas de cada tabla, identificadas por <code>attnum</code>.</td></tr>
+  <tr><td>Eventos por columna y tabla</td><td><code>aud_evento</code>, <code>aud_configuracion</code></td><td>Catálogo de operaciones y la combinación columna × evento que debe auditarse.</td></tr>
+  <tr><td>Usuarios auditados</td><td><code>aud_usuario</code></td><td>Usuario de base de datos y, opcionalmente, usuario de la aplicación. Se puede excluir.</td></tr>
+  <tr><td>Estaciones de trabajo auditadas</td><td><code>aud_estacion</code></td><td>IP (según la política de privacidad), nombre de la estación y aplicación.</td></tr>
+</table>
+<h3>Relaciones exigidas</h3>
+<ul>
+  <li><strong>La configuración referencia a los eventos que se deben registrar ante el cambio de una columna de una tabla:</strong> <code>aud_configuracion.evento_id → aud_evento</code> y <code>aud_configuracion.columna_id → aud_columna.tabla_id → aud_tabla</code>.</li>
+  <li><strong>Cada registro de bitácora referencia a la configuración usada, al usuario y a la estación:</strong> <code>aud_bitacora_detalle.configuracion_id → aud_configuracion</code>, <code>aud_bitacora.usuario_id → aud_usuario</code> y <code>aud_bitacora.estacion_id → aud_estacion</code>.</li>
+</ul>
+<div class="nota"><strong>Normalización.</strong> La bitácora tiene cabecera (una fila por operación) y detalle (una fila por columna afectada), en tercera forma normal. La consulta por columna usa el índice <code>(configuracion_id, bitacora_id)</code> del detalle y la consulta por usuario el índice <code>(usuario_id, fecha_hora)</code> de la cabecera.</div>
+<div class="nota"><strong>Integridad referencial y preservación de datos.</strong> La bitácora no tiene llave foránea hacia las filas de negocio (que pueden borrarse), sino hacia la configuración, que nunca se borra físicamente: se desactiva. Así la bitácora mantiene integridad referencial con las tablas configuradas y conserva los datos aunque el registro original se elimine.</div>
+
+<!-- =============================================================== 4 -->
+<h1>4. Diccionario de datos</h1>
+<p>Generado desde el catálogo de PostgreSQL con <code>autoaudit.fn_diccionario_datos('autoaudit')</code>; las descripciones provienen de los <code>COMMENT ON</code> de cada objeto.</p>
+{% for nombre in orden %}{% set t = tablas[nombre] %}
+<h3>{{ nombre }}</h3>
+<p class="pequeno">{{ t.comentario }}</p>
+<table>
+  <tr><th style="width:4%">#</th><th style="width:17%">Columna</th><th style="width:15%">Tipo</th><th style="width:6%">Nulo</th><th style="width:8%">Llave</th><th style="width:14%">Referencia / defecto</th><th>Descripción</th></tr>
+  {% for c in t.columnas %}<tr><td>{{ c.posicion }}</td><td><strong>{{ c.columna }}</strong></td><td>{{ c.tipo_dato }}</td><td>{{ c.nulo }}</td><td>{{ c.llave or '' }}</td>
+    <td class="pequeno">{{ c.referencia or '' }}{% if c.referencia and c.valor_defecto %}<br>{% endif %}{{ (c.valor_defecto or '')[:40] }}</td><td>{{ c.descripcion or '' }}</td></tr>{% endfor %}
+</table>
+{% endfor %}
+
+<!-- =============================================================== 5 -->
+<h1>5. Funcionamiento interno</h1>
+<h2>5.1 Consultas al diccionario de datos del DBMS</h2>
+<p>El módulo de configuración solo ofrece objetos que existen. Las funciones consultan <code>pg_class</code>, <code>pg_namespace</code>, <code>pg_attribute</code>, <code>pg_attrdef</code> y <code>pg_constraint</code>:</p>
+<pre>-- Tablas disponibles (excluye esquemas del sistema y particiones)
+SELECT n.nspname, c.relname, c.reltuples, EXISTS (SELECT 1 FROM pg_constraint k
+       WHERE k.conrelid = c.oid AND k.contype = 'p') AS tiene_pk
+  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+ WHERE c.relkind IN ('r','p') AND NOT c.relispartition
+   AND n.nspname NOT IN ('pg_catalog','information_schema','autoaudit');
+
+-- Columnas de una tabla con su tipo y si forman la llave primaria
+SELECT a.attnum, a.attname, format_type(a.atttypid, a.atttypmod), a.attnotnull
+  FROM pg_attribute a WHERE a.attrelid = 'demo.clientes'::regclass
+   AND a.attnum > 0 AND NOT a.attisdropped;</pre>
+<p>Antes de activar, <code>fn_validar_config</code> comprueba que la tabla y cada columna existan, advierte si la tabla no tiene llave primaria y sincroniza nombres por OID y <code>attnum</code>.</p>
+
+<h2>5.2 Generación dinámica de triggers</h2>
+<p><code>_fn_generar_trigger(tabla_id)</code> lee la configuración activa y construye con <code>format('%I')</code>, a prueba de inyección SQL:</p>
+<ul>
+  <li><strong>Una función PL/pgSQL por tabla</strong> (<code>autoaudit.aa_fn_t&lt;id&gt;_&lt;esquema&gt;_&lt;tabla&gt;</code>) con el código "desenrollado": cada columna configurada aparece explícita, sin bucles ni reflexión en tiempo de ejecución.</li>
+  <li><strong>Un único trigger por tabla origen</strong>: <code>CREATE OR REPLACE TRIGGER aa_auditoria AFTER INSERT OR UPDATE OF &lt;columnas&gt; OR DELETE … FOR EACH ROW</code>. Solo incluye las operaciones habilitadas, y <code>UPDATE OF</code> limita el disparo a las columnas auditadas.</li>
+  <li>En UPDATE solo se registra si alguna columna auditada cambió realmente (<code>IS DISTINCT FROM</code>); los tipos sin operador de igualdad (json, xml, arreglos) se comparan como texto.</li>
+  <li>El código y su hash MD5 se guardan en <code>aud_trigger</code>. Si el código no cambió, no se recrea (operación idempotente). Si ya no hay columnas activas, se eliminan el trigger y la función.</li>
+</ul>
+<p>Ejemplo real generado para <code>demo.productos</code> (fragmento):</p>
+<pre>CREATE OR REPLACE TRIGGER aa_auditoria
+AFTER INSERT OR UPDATE OF precio, existencia, activo, atributos OR DELETE ON demo.productos
+FOR EACH ROW EXECUTE FUNCTION autoaudit.aa_fn_t2_demo_productos();
+
+ELSIF TG_OP = 'UPDATE' THEN
+    IF NOT (NEW.precio IS DISTINCT FROM OLD.precio OR NEW.existencia IS DISTINCT FROM OLD.existencia ...) THEN
+        RETURN NULL;  -- ninguna columna auditada cambió realmente
+    END IF;
+    INSERT INTO autoaudit.aud_bitacora (...) VALUES (v_fecha, 2, 2, v_ctx[1], v_ctx[2], ..., to_jsonb(OLD), to_jsonb(NEW))
+    RETURNING id INTO v_id;
+    INSERT INTO autoaudit.aud_bitacora_detalle (bitacora_id, configuracion_id, valor_anterior, valor_nuevo)
+    SELECT v_id, v.cfg, v.anterior, v.nuevo FROM (VALUES (15, OLD.precio::text, NEW.precio::text, ...)) ...</pre>
+
+<h2>5.3 Bitácora</h2>
+<ul>
+  <li><strong>Cabecera</strong> (<code>aud_bitacora</code>): tabla, operación, usuario, estación, identificador de transacción, fecha y hora (<code>clock_timestamp()</code>), llave primaria del registro y la <strong>fila completa</strong> antes y después del cambio (<code>jsonb</code>).</li>
+  <li><strong>Detalle</strong> (<code>aud_bitacora_detalle</code>): una fila por columna afectada con su valor anterior y nuevo y la configuración que la originó.</li>
+  <li><strong>Contexto</strong>: <code>_fn_contexto()</code> obtiene <code>session_user</code>, el usuario de aplicación (<code>SET autoaudit.usuario_app</code>), la estación (<code>SET autoaudit.estacion</code>), <code>application_name</code> e <code>inet_client_addr()</code>. Usa una caché por sesión que PostgreSQL revierte si la transacción se revierte.</li>
+</ul>
+
+<h2>5.4 Gestión de dependencias entre triggers y tablas origen</h2>
+<table>
+  <tr><th style="width:30%">Evento DDL</th><th>Reacción automática (event triggers)</th></tr>
+  <tr><td><code>DROP TABLE</code> auditada</td><td>La configuración se marca como eliminada, el trigger pasa a <code>TABLA_ELIMINADA</code> y se borra la función. La bitácora se conserva.</td></tr>
+  <tr><td><code>DROP COLUMN</code> auditada</td><td>Sin <code>CASCADE</code>, PostgreSQL lo impide (dependencia de <code>UPDATE OF</code>). Con <code>CASCADE</code>, la columna se desactiva y el trigger se regenera solo.</td></tr>
+  <tr><td><code>RENAME</code> de tabla o columna</td><td>Los nombres se sincronizan por OID / <code>attnum</code> y el trigger se regenera.</td></tr>
+  <tr><td><code>DROP TRIGGER</code> o <code>DISABLE TRIGGER</code> manual</td><td>Se registra quién lo hizo en <code>aud_cambio_config</code> y <code>aud_error</code>; la vista <code>v_estado_triggers</code> lo muestra como pendiente o deshabilitado.</td></tr>
+</table>
+
+<h2>5.5 Consultas parametrizadas para la consulta histórica</h2>
+<table>
+  <tr><th style="width:38%">Función</th><th>Uso</th></tr>
+  <tr><td><code>fn_cambios_por_usuario(usuario, desde, hasta, esquema, tabla)</code></td><td>Historial completo de un usuario de BD o de aplicación.</td></tr>
+  <tr><td><code>fn_cambios_por_columna(esquema, tabla, columna, desde, hasta, operación)</code></td><td>Todos los cambios de una columna; sobrevive a renombres.</td></tr>
+  <tr><td><code>fn_historial_registro(esquema, tabla, pk)</code></td><td>Cronología de un registro por su llave primaria.</td></tr>
+  <tr><td><code>fn_estado_en_fecha(esquema, tabla, pk, fecha)</code></td><td>Reconstruye cómo estaba un registro en una fecha.</td></tr>
+  <tr><td><code>fn_resumen</code>, <code>fn_actividad_diaria</code></td><td>Indicadores y gráfica del panel.</td></tr>
+</table>
+<p>Desde Python siempre se llaman con parámetros (<code>%s</code> de psycopg), nunca concatenando texto:</p>
+<pre>conn.execute("SELECT * FROM autoaudit.fn_cambios_por_columna(%s, %s, %s, %s, %s, %s)",
+             (esquema, tabla, columna, desde, hasta, operacion))</pre>
+
+<!-- =============================================================== 6 -->
+<h1>6. Manual de configuración y activación de auditoría por tabla</h1>
+<h2>6.1 Ingreso</h2>
+<p>Abra la aplicación (por defecto <code>http://localhost:8000</code>) e ingrese con un usuario de PostgreSQL que tenga el rol <code>autoaudit_admin</code> (configura) o <code>autoaudit_lector</code> (solo consulta).</p>
+<div class="figura"><img src="{{ img }}/ui_login.png"><div class="pie">Figura 2. Inicio de sesión.</div></div>
+<div class="figura"><img src="{{ img }}/ui_panel.png"><div class="pie">Figura 3. Panel principal con indicadores, actividad y estado de los triggers.</div></div>
+
+<h2>6.2 Seleccionar la tabla</h2>
+<p>En <strong>Configuración</strong> se listan las tablas existentes según el diccionario de datos, con su llave primaria y el estado de su auditoría. Presione <strong>Configurar</strong> en la tabla deseada.</p>
+<div class="figura"><img src="{{ img }}/ui_tablas.png"><div class="pie">Figura 4. Tablas disponibles para auditar.</div></div>
+
+<h2>6.3 Elegir columnas y eventos</h2>
+<div class="paso"><div class="n">1</div><div>Marque, por cada columna, los eventos a auditar: <strong>INSERT</strong>, <strong>UPDATE</strong> y/o <strong>DELETE</strong>. La casilla del encabezado marca la columna completa.</div></div>
+<div class="paso"><div class="n">2</div><div>Presione <strong>Vista previa del SQL</strong> para ver el código exacto que se generará, sin guardar nada.</div></div>
+<div class="paso"><div class="n">3</div><div>Presione <strong>Guardar y generar trigger</strong>. El sistema valida, guarda la configuración y crea o actualiza el trigger. El resultado se muestra en un aviso y en el historial de triggers.</div></div>
+<div class="paso"><div class="n">4</div><div>Para dejar de auditar la tabla use <strong>Desactivar auditoría</strong>: se elimina el trigger y la bitácora histórica se conserva.</div></div>
+<div class="figura"><img src="{{ img }}/ui_tabla_config.png"><div class="pie">Figura 5. Selección granular de columnas y eventos.</div></div>
+<div class="figura"><img src="{{ img }}/ui_vista_previa.png"><div class="pie">Figura 6. Vista previa del SQL generado.</div></div>
+
+<h2>6.4 Equivalente por línea de comandos y SQL</h2>
+<pre># CLI
+python cli.py tablas
+python cli.py configurar demo clientes nombre=IUD correo=IUD limite_credito=IUD nit=ID
+python cli.py previsualizar demo ventas total=U estado=UD
+python cli.py estado
+
+-- SQL (como administrador de auditoría)
+SELECT autoaudit.fn_configurar_tabla('demo', 'clientes',
+       '{"nombre": ["I","U","D"], "correo": ["U"]}');
+SELECT autoaudit.fn_configurar_columna('demo', 'clientes', 'telefono', false, true, false);
+SELECT autoaudit.fn_desactivar_tabla('demo', 'clientes');</pre>
+
+<h2>6.5 Verificar el estado</h2>
+<p>La pantalla <strong>Estado</strong> (vista <code>v_estado_triggers</code>) compara la configuración con los triggers que realmente existen: <code>OK</code>, <code>PENDIENTE</code>, <code>TRIGGER_FALTANTE</code>, <code>DESHABILITADO</code> o <code>DESACTUALIZADO</code>. También muestra los errores y el historial de cambios de configuración.</p>
+<div class="figura"><img src="{{ img }}/ui_estado.png"><div class="pie">Figura 7. Estado de la auditoría, errores y cambios de configuración.</div></div>
+
+<h2>6.6 Consultar el historial</h2>
+<p>En <strong>Consultas</strong> se busca por usuario o por columna, con filtro de fechas y operación, en vista de tabla o de línea de tiempo. Los botones CSV, XLSX, PDF y JSON exportan el resultado completo.</p>
+<div class="figura"><img src="{{ img }}/ui_consultas_usuario.png"><div class="pie">Figura 8. Consulta por usuario.</div></div>
+<div class="figura"><img src="{{ img }}/ui_consultas_linea.png"><div class="pie">Figura 9. Consulta por columna en línea de tiempo.</div></div>
+<div class="figura"><img src="{{ img }}/ui_registro.png"><div class="pie">Figura 10. Historial de un registro y su estado en una fecha.</div></div>
+
+<h2>6.7 Usuarios, estaciones y parámetros</h2>
+<p>Los usuarios y estaciones se registran solos la primera vez que hacen un cambio. Un administrador puede excluir, por ejemplo, el usuario de un proceso de carga masiva. En <strong>Parámetros</strong> se elige cómo se guarda la IP (completa, enmascarada o hash) y el modo de error (estricto o tolerante).</p>
+<div class="figura"><img src="{{ img }}/ui_usuarios.png"><div class="pie">Figura 11. Usuarios y estaciones auditadas.</div></div>
+<div class="figura"><img src="{{ img }}/ui_parametros.png"><div class="pie">Figura 12. Parámetros del sistema.</div></div>
+
+<!-- =============================================================== 7 -->
+<h1>7. Procedimiento de instalación y despliegue de triggers</h1>
+<h2>7.1 Requisitos</h2>
+<ul><li>Ubuntu 26.04 LTS (servidor o WSL2).</li><li>PostgreSQL 18 y acceso de superusuario para la instalación (los event triggers lo requieren).</li><li>Python 3.12 o superior.</li></ul>
+
+<h2>7.2 Instalación automática</h2>
+<pre>git clone {{ p.repositorio }}.git
+cd autoaudit
+sudo bash scripts/install.sh            # con datos de ejemplo
+sudo DEMO=0 bash scripts/install.sh     # sin datos de ejemplo</pre>
+<p>El script instala PostgreSQL 18 (repositorio de Ubuntu o, si no está, el oficial PGDG), crea la base <code>autoaudit</code>, ejecuta <code>sql/instalar.sql</code>, crea el entorno virtual de Python e instala las dependencias.</p>
+
+<h2>7.3 Instalación manual paso a paso</h2>
+<pre>sudo apt-get update
+sudo apt-get install -y postgresql-18 postgresql-client-18 python3-venv
+sudo -u postgres createdb autoaudit
+sudo -u postgres psql -d autoaudit -f sql/instalar.sql         # -v demo=0 para omitir el ejemplo
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+cp .env.example .env
+.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000</pre>
+<table>
+  <tr><th style="width:30%">Script</th><th>Contenido</th></tr>
+  <tr><td><code>00_roles.sql</code></td><td>Roles <code>autoaudit_owner</code>, <code>autoaudit_admin</code> y <code>autoaudit_lector</code>.</td></tr>
+  <tr><td><code>01_esquema_tablas.sql</code></td><td>Esquema y tablas del sistema con comentarios.</td></tr>
+  <tr><td><code>02_diccionario.sql</code></td><td>Consultas al diccionario de datos.</td></tr>
+  <tr><td><code>03_configuracion.sql</code></td><td>Validación y persistencia de la configuración.</td></tr>
+  <tr><td><code>04_generador_triggers.sql</code></td><td>Generador dinámico de triggers y contexto.</td></tr>
+  <tr><td><code>05_event_triggers.sql</code></td><td>Gestión de dependencias DDL.</td></tr>
+  <tr><td><code>06_consultas.sql</code></td><td>Vistas y consultas parametrizadas.</td></tr>
+  <tr><td><code>07_seguridad.sql</code></td><td>Permisos y bitácora inmutable.</td></tr>
+  <tr><td><code>90_demo_datos.sql</code></td><td>Esquema de ejemplo y usuarios de prueba.</td></tr>
+</table>
+
+<h2>7.4 Preparar un esquema de negocio propio</h2>
+<p>Para crear y eliminar triggers PostgreSQL exige ser dueño de la tabla. Se delega el rol dueño del esquema de negocio al dueño de AutoAudit y se crean los usuarios de auditoría:</p>
+<pre>GRANT dueno_de_mis_tablas TO autoaudit_owner;
+CREATE ROLE auditor1 LOGIN PASSWORD '...';   GRANT autoaudit_admin  TO auditor1;
+CREATE ROLE consulta1 LOGIN PASSWORD '...';  GRANT autoaudit_lector TO consulta1;</pre>
+
+<h2>7.5 Despliegue de los triggers</h2>
+<div class="paso"><div class="n">1</div><div>Configure cada tabla (sección 6). Al guardar, el trigger se despliega en la misma transacción.</div></div>
+<div class="paso"><div class="n">2</div><div>Para redesplegar todos los triggers (por ejemplo, tras restaurar un respaldo): botón <strong>Regenerar todos</strong> en Estado, o <code>SELECT * FROM autoaudit.fn_regenerar_todos(true);</code></div></div>
+<div class="paso"><div class="n">3</div><div>Verifique con <code>SELECT * FROM autoaudit.v_estado_triggers;</code> que todas las tablas estén en <code>OK</code>.</div></div>
+<div class="paso"><div class="n">4</div><div>Las aplicaciones que usen un único usuario de conexión pueden identificar al usuario real con <code>SET autoaudit.usuario_app = 'jperez'</code> y la estación con <code>SET autoaudit.estacion = 'CAJA-01'</code>.</div></div>
+
+<!-- =============================================================== 8 -->
+<h1>8. Seguridad y privacidad</h1>
+<table>
+  <tr><th style="width:32%">Requisito</th><th>Implementación</th></tr>
+  <tr><td>Solo administradores configuran</td><td>Las funciones de configuración solo tienen <code>EXECUTE</code> para <code>autoaudit_admin</code> y, además, verifican <code>pg_has_role(session_user, 'autoaudit_admin')</code> (defensa en profundidad). La web también lo exige.</td></tr>
+  <tr><td>Sin escritura directa en la bitácora</td><td>Las tablas pertenecen a <code>autoaudit_owner</code> (NOLOGIN); nadie más tiene INSERT, UPDATE, DELETE ni TRUNCATE. Solo las funciones de trigger (<code>SECURITY DEFINER</code> con <code>search_path</code> fijo) escriben. Un trigger <code>BEFORE UPDATE/DELETE/TRUNCATE</code> hace la bitácora inmutable incluso para el superusuario.</td></tr>
+  <tr><td>Privacidad de la IP</td><td>Parámetro <code>modo_ip</code>: completa, <strong>enmascarada</strong> (por defecto, red /24 o /48) o hash SHA-256 con sal secreta. El rol lector siempre ve la IP enmascarada y no puede leer la columna ni la sal.</td></tr>
+  <tr><td>Inyección SQL</td><td><code>format('%I', …)</code> para identificadores en PL/pgSQL y parámetros en psycopg.</td></tr>
+  <tr><td>Credenciales</td><td>Cada persona entra con su propio usuario de PostgreSQL; la sesión web guarda solo un token aleatorio en una cookie <code>HttpOnly</code>.</td></tr>
+  <tr><td>Funciones generadas</td><td>Sin <code>EXECUTE</code> para <code>PUBLIC</code>.</td></tr>
+</table>
+
+<!-- =============================================================== 9 -->
+<h1>9. Manejo de errores</h1>
+<ul>
+  <li><strong>Validación previa:</strong> tabla o columna inexistente, evento no válido o esquema del sistema se rechazan con un mensaje claro y un código SQLSTATE específico.</li>
+  <li><strong>Errores de generación:</strong> la generación corre en un subbloque; si falla (por ejemplo, falta de privilegios sobre la tabla) se revierte por completo, sin dejar triggers a medias, se registra en <code>aud_error</code> con SQLSTATE, mensaje, pista y SQL, y se informa al usuario.</li>
+  <li><strong>Errores de ejecución</strong> (parámetro <code>modo_error</code>):
+    <ul><li><em>estricto</em> (por defecto): si la auditoría falla, la operación de negocio se revierte; ningún cambio queda sin auditar.</li>
+        <li><em>tolerante</em>: el error se guarda en <code>aud_error</code> y la operación continúa.</li></ul></li>
+  <li><strong>Errores de la aplicación:</strong> se muestran como avisos y se registran con <code>fn_registrar_error</code>.</li>
+</ul>
+
+<!-- =============================================================== 10 -->
+<h1>10. Pruebas de validación</h1>
+<h2>10.1 Pruebas funcionales</h2>
+<p>Se ejecutan con <code>pytest</code> sobre una base de datos creada desde cero en cada corrida (<code>autoaudit_test</code>). Resultado: <span class="{{ 'ok' if pruebas.ok == pruebas.total else 'fallo' }}">{{ pruebas.ok }} de {{ pruebas.total }} pruebas aprobadas</span> en {{ '%.1f'|format(pruebas.tiempo or 0) }} s.</p>
+<table>
+  <tr><th>Archivo</th><th style="width:15%">Pruebas</th><th style="width:15%">Aprobadas</th></tr>
+  {% for a, r in pruebas.por_archivo.items() %}<tr><td><code>tests/{{ a }}.py</code></td><td>{{ r.total }}</td><td class="ok">{{ r.ok }}</td></tr>{% endfor %}
+</table>
+<h3>Casos requeridos por el enunciado</h3>
+<table>
+  <tr><th style="width:34%">Caso</th><th>Prueba</th></tr>
+  <tr><td>INSERT con registro correcto en bitácora</td><td><code>test_insert_registra_todos_los_campos</code>: cabecera, fila completa, valores por columna, usuario, estación, aplicación, IP y fecha.</td></tr>
+  <tr><td>UPDATE con valor antiguo y nuevo</td><td><code>test_update_captura_valor_antiguo_y_nuevo</code>, <code>test_update_sin_cambios_reales_no_se_registra</code>.</td></tr>
+  <tr><td>DELETE con preservación de datos</td><td><code>test_delete_preserva_los_datos</code>: la fila completa sigue en la bitácora tras borrarla.</td></tr>
+  <tr><td>Rendimiento con volumen creciente</td><td><code>pruebas_rendimiento.py</code> (sección 10.2).</td></tr>
+</table>
+<h3>Detalle de todas las pruebas</h3>
+<table>
+  <tr><th style="width:22%">Archivo</th><th>Prueba</th><th style="width:10%">Resultado</th></tr>
+  {% for c in pruebas.casos %}<tr><td class="pequeno">{{ c.archivo }}</td><td class="pequeno">{{ c.nombre }}</td><td class="{{ 'ok' if c.estado == 'OK' else 'fallo' }} pequeno">{{ c.estado }}</td></tr>{% endfor %}
+</table>
+
+<h2>10.2 Pruebas de rendimiento</h2>
+<p>Se comparan dos tablas idénticas, una sin auditoría y otra con tres columnas auditadas en INSERT, UPDATE y DELETE, con volúmenes de 1,000 a 100,000 filas por operación, mientras la bitácora crece hasta más de un millón de filas.</p>
+{% if rendimiento %}
+<table>
+  <tr><th>Filas</th><th>INSERT sin / con (ms)</th><th>UPDATE sin / con (ms)</th><th>DELETE sin / con (ms)</th><th>Usuario excluido INSERT (ms)</th><th>Filas en bitácora</th></tr>
+  {% for f in rendimiento %}<tr><td>{{ '{:,}'.format(f.volumen) }}</td><td>{{ f.insert_sin_ms }} / {{ f.insert_con_ms }}</td><td>{{ f.update_sin_ms }} / {{ f.update_con_ms }}</td><td>{{ f.delete_sin_ms }} / {{ f.delete_con_ms }}</td><td>{{ f.insert_exc_ms }}</td><td>{{ '{:,}'.format(f.bitacora_detalle|int) }}</td></tr>{% endfor %}
+</table>
+<table>
+  <tr><th>Filas en bitácora</th><th>Historial de un registro (ms)</th><th>Por usuario (ms)</th><th>Por columna y operación (ms)</th></tr>
+  {% for f in rendimiento %}<tr><td>{{ '{:,}'.format(f.bitacora_detalle|int) }}</td><td>{{ f.q_historial_registro }}</td><td>{{ f.q_por_usuario_dia }}</td><td>{{ f.q_por_columna_rango }}</td></tr>{% endfor %}
+</table>
+{% endif %}
+<div class="figura"><img src="{{ img }}/../rendimiento/rendimiento.png"><div class="pie">Figura 13. Costo por fila, costo por transacción individual y tiempo de consultas frente al tamaño de la bitácora.</div></div>
+<h3>Conclusiones</h3>
+<ul>
+  <li><strong>Operación normal</strong> (una fila por transacción, el caso típico de una aplicación): la auditoría agrega menos de 1 ms por transacción de INSERT + UPDATE (entre 0.4 y 0.6 ms en las corridas realizadas en WSL2).</li>
+  <li><strong>Cargas masivas:</strong> el costo es de unos 110 µs por fila auditada, constante con el volumen (no se degrada). La mayor parte corresponde a las llaves foráneas que garantizan la integridad referencial de la bitácora. Para cargas masivas puede excluirse el usuario del proceso, con lo que el costo baja a unos 7 µs por fila.</li>
+  <li><strong>Consultas históricas:</strong> se mantienen por debajo de 15 ms aun con más de 1.3 millones de filas en la bitácora, porque se resuelven por índice.</li>
+  <li>Durante el desarrollo estas pruebas detectaron que la bitácora particionada y una consulta a <code>pg_stat_activity</code> por transacción triplicaban el costo; ambos se corrigieron.</li>
+</ul>
+
+<!-- =============================================================== 11 -->
+<h1>11. Matriz de cumplimiento</h1>
+<table>
+  <tr><th style="width:42%">Criterio del enunciado</th><th>Cómo se cumple / evidencia</th></tr>
+  <tr><td colspan="2"><strong>Módulo de configuración</strong></td></tr>
+  <tr><td>Interfaz para seleccionar tablas basada en el diccionario</td><td><code>fn_listar_tablas</code>; pantalla Configuración (6.2)</td></tr>
+  <tr><td>Selección granular de columnas</td><td><code>aud_columna</code>; pantalla de tabla (6.3)</td></tr>
+  <tr><td>Activación/desactivación por operación</td><td><code>aud_configuracion.activa</code> por evento; <code>test_desactivar_evento_lo_quita_del_trigger</code></td></tr>
+  <tr><td>Persistencia en tablas especializadas</td><td>Esquema <code>autoaudit</code> (secciones 3 y 4)</td></tr>
+  <tr><td colspan="2"><strong>Módulo de generación de triggers</strong></td></tr>
+  <tr><td>Procesamiento automático de la configuración</td><td><code>fn_configurar_tabla(..., p_generar := true)</code></td></tr>
+  <tr><td>Generación de código SQL</td><td><code>_fn_construir_ddl</code>; vista previa (figura 6)</td></tr>
+  <tr><td>Triggers AFTER con valores completos</td><td><code>AFTER … FOR EACH ROW</code>; <code>fila_anterior</code>/<code>fila_nueva</code></td></tr>
+  <tr><td>Gestión de dependencias trigger-tabla</td><td><code>aud_trigger</code>, event triggers, <code>v_estado_triggers</code> (5.4)</td></tr>
+  <tr><td colspan="2"><strong>Módulo de bitácora</strong></td></tr>
+  <tr><td>Tabla centralizada</td><td><code>aud_bitacora</code> + <code>aud_bitacora_detalle</code></td></tr>
+  <tr><td>Estructura normalizada para consultas</td><td>Cabecera/detalle en 3FN e índices (10.2)</td></tr>
+  <tr><td>Valores antiguos y nuevos</td><td><code>valor_anterior</code>, <code>valor_nuevo</code>; <code>test_update_captura_valor_antiguo_y_nuevo</code></td></tr>
+  <tr><td>Usuario, fecha, hora e IP origen</td><td><code>aud_usuario</code>, <code>aud_estacion</code>, <code>fecha_hora</code>; <code>test_insert_registra_todos_los_campos</code></td></tr>
+  <tr><td colspan="2"><strong>Módulo de consulta y reporte</strong></td></tr>
+  <tr><td>Búsqueda por usuario</td><td><code>fn_cambios_por_usuario</code>; <code>test_consulta_por_usuario_historial_completo</code></td></tr>
+  <tr><td>Filtrado por columna</td><td><code>fn_cambios_por_columna</code>; <code>test_consulta_por_columna_todos_los_cambios</code></td></tr>
+  <tr><td>Visualización cronológica</td><td>Línea de tiempo e historial de registro (figuras 9 y 10)</td></tr>
+  <tr><td>Exportación en formatos estándar</td><td>CSV, XLSX, PDF, JSON; <code>test_exportar_desde_la_web</code></td></tr>
+  <tr><td colspan="2"><strong>Modelo entidad-relación</strong></td></tr>
+  <tr><td>Tablas, columnas, eventos, usuarios y estaciones</td><td>Sección 3.2</td></tr>
+  <tr><td>Configuración referencia eventos por columna y tabla</td><td><code>aud_configuracion</code> (columna × evento)</td></tr>
+  <tr><td>Bitácora referencia configuración, usuario y estación</td><td>Llaves foráneas (figura 1)</td></tr>
+  <tr><td colspan="2"><strong>Requisitos técnicos</strong></td></tr>
+  <tr><td>PostgreSQL 18 · Ubuntu 26.04 LTS</td><td>{{ version_pg[:40] }} · {{ so or 'Ubuntu 26.04 LTS' }}</td></tr>
+  <tr><td>PL/pgSQL para generar triggers</td><td><code>sql/04_generador_triggers.sql</code></td></tr>
+  <tr><td>Servidor e interfaces</td><td>Python (FastAPI, Typer)</td></tr>
+  <tr><td colspan="2"><strong>Restricciones de diseño</strong></td></tr>
+  <tr><td>Cada trigger maneja una sola tabla origen</td><td>Una función y un trigger por tabla; <code>test_trigger_generado_es_valido</code></td></tr>
+  <tr><td>Validar existencia antes de activar</td><td><code>fn_validar_config</code>; <code>test_tabla_inexistente</code>, <code>test_columna_inexistente</code></td></tr>
+  <tr><td>Preservar datos aunque se elimine el registro</td><td><code>fila_anterior</code> jsonb; <code>test_delete_preserva_los_datos</code>, <code>test_drop_table_conserva_bitacora</code></td></tr>
+  <tr><td colspan="2"><strong>Seguridad</strong></td></tr>
+  <tr><td>Solo administradores configuran</td><td>Sección 8; <code>test_solo_administradores_configuran</code></td></tr>
+  <tr><td>Sin escritura directa en la bitácora</td><td>Sección 8; <code>test_sin_escritura_directa</code>, <code>test_bitacora_inmutable_incluso_para_superusuario</code></td></tr>
+  <tr><td>Privacidad de la IP</td><td><code>modo_ip</code>; <code>test_lector_ve_ip_enmascarada</code>, <code>test_modo_ip_hash</code></td></tr>
+  <tr><td colspan="2"><strong>Criterios de aceptación</strong></td></tr>
+  <tr><td>Triggers válidos para cada operación configurada</td><td><code>test_operaciones.py</code> completo</td></tr>
+  <tr><td>Cada cambio con todos los campos requeridos</td><td>Columnas <code>NOT NULL</code>; <code>test_insert_registra_todos_los_campos</code></td></tr>
+  <tr><td>Consulta por usuario: historial completo</td><td><code>test_consulta_por_usuario_historial_completo</code></td></tr>
+  <tr><td>Consulta por columna: todos los cambios</td><td><code>test_consulta_por_columna_todos_los_cambios</code></td></tr>
+  <tr><td>Sin impacto significativo en el rendimiento</td><td>Sección 10.2</td></tr>
+  <tr><td>Configuración refleja el estado actual</td><td><code>v_estado_triggers</code>; <code>test_configuracion_refleja_estado_actual</code></td></tr>
+  <tr><td>Integridad referencial con tablas configuradas</td><td>Llaves foráneas y borrado lógico (3.2)</td></tr>
+  <tr><td>Manejo de errores en generación y ejecución</td><td>Sección 9; <code>test_error_de_generacion_…</code>, <code>test_modo_tolerante_…</code>, <code>test_modo_estricto_…</code></td></tr>
+  <tr><td colspan="2"><strong>Entregables</strong></td></tr>
+  <tr><td>PDF: ER, diccionario, manual, instalación</td><td>Este documento (secciones 3, 4, 6 y 7)</td></tr>
+  <tr><td>Repositorio: consultas al diccionario, scripts, generador, consultas parametrizadas, ejemplos y pruebas</td><td><code>sql/02…07</code>, <code>ejemplos/</code>, <code>tests/</code> (anexo)</td></tr>
+</table>
+
+<!-- =============================================================== 12 -->
+<h1>12. Anexo: estructura del repositorio y API</h1>
+<pre>autoaudit/
+├── sql/                     Scripts de base de datos (00 a 07, demo e instalar.sql)
+├── app/                     Aplicación web (FastAPI): main, servicios, exportar, auth, db
+│   ├── templates/           Pantallas (Jinja2)
+│   └── static/              Estilos y JavaScript
+├── cli.py                   Interfaz de línea de comandos
+├── ejemplos/                Ejemplos de uso en SQL (operaciones, consultas, seguridad y DDL)
+├── tests/                   Pruebas funcionales (pytest)
+├── pruebas_rendimiento.py   Pruebas de volumen creciente
+├── docs/                    Este documento y su generador
+├── scripts/                 install.sh y utilidades
+└── requirements.txt</pre>
+<h2>Funciones públicas del esquema autoaudit</h2>
+<table>
+  <tr><th style="width:30%">Función</th><th style="width:38%">Parámetros</th><th>Descripción</th></tr>
+  {% for f in funciones %}<tr><td><code>{{ f.nombre }}</code></td><td class="pequeno">{{ f.argumentos }}</td><td class="pequeno">{{ f.descripcion or '' }}</td></tr>{% endfor %}
+</table>
+<p class="pequeno">Documento generado automáticamente por <code>docs/generar_documentacion.py</code> el {{ generado }}.</p>
+</body>
+</html>

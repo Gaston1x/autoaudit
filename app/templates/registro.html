@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Historial de registro{% endblock %}
+{% block icono %}bi-clock-history{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / Historial de registro{% endblock %}
+{% block encabezado %}Viaje en el <span class="resalte">tiempo</span>{% endblock %}
+{% block subtitulo %}Cronología completa de un registro por su llave primaria, y cómo estaba en cualquier fecha.{% endblock %}
+{% macro valor(v) %}{% if v is none %}<span class="nulo">nulo</span>{% else %}{{ v }}{% endif %}{% endmacro %}
+{% block contenido %}
+<form class="tarjeta mb-3 aparece d1" method="get">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-3"><label class="form-label">Tabla</label>
+      <select class="form-select" name="tabla">{% for t in tablas %}{% set v = t.esquema ~ '.' ~ t.tabla %}<option {{ 'selected' if v == f.tabla }}>{{ v }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><label class="form-label">Llave primaria (JSON)</label>
+      <div class="campo-icono"><i class="bi bi-key"></i><input class="form-control font-monospace" name="pk" value='{{ f.pk or '{"id": 1}' }}'></div></div>
+    <div class="col-md-3"><label class="form-label">¿Cómo estaba en...? (opcional)</label>
+      <input class="form-control" type="datetime-local" step="1" name="fecha" value="{{ f.fecha }}"></div>
+    <div class="col-md-auto"><button class="btn btn-primario px-4"><i class="bi bi-clock-history me-1"></i>Consultar</button></div>
+  </div>
+</form>
+{% if error %}<div class="alert alert-danger aviso"><i class="bi bi-x-octagon-fill fs-5"></i><div class="texto">{{ error }}</div></div>{% endif %}
+
+<div class="row g-3">
+{% if estado_fecha %}
+  <div class="col-lg-4 aparece d2">
+    <div class="tarjeta h-100" style="border-top:4px solid var(--gold)">
+      <div class="tarjeta-titulo"><i class="bi bi-hourglass-split"></i>Estado en {{ f.fecha.replace('T', ' ') }}</div>
+      {% if estado_fecha.existia is none %}<p class="text-secondary mb-0">{{ estado_fecha.mensaje }}</p>
+      {% elif not estado_fecha.existia %}<p class="mb-0"><span class="op op-DELETE">ELIMINADO</span> El registro no existía en esa fecha (se eliminó el {{ estado_fecha.fecha_operacion }}).</p>
+      {% else %}
+      <p class="small text-secondary">Última operación antes de esa fecha: <span class="op op-{{ estado_fecha.ultima_operacion }}">{{ estado_fecha.ultima_operacion }}</span></p>
+      <table class="tabla">{% for k, v in estado_fecha.fila.items() %}<tr><th class="text-secondary small" style="width:40%">{{ k }}</th><td class="fw-semibold">{{ valor(v) }}</td></tr>{% endfor %}</table>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+  <div class="{{ 'col-lg-8' if estado_fecha else 'col-12' }}">
+  {% if f.pk and f.tabla and not error %}
+    <h5 class="texto-navy fw-800 mb-3 aparece d2"><i class="bi bi-diagram-3 me-2 texto-cian"></i>Cronología</h5>
+    <div class="timeline">
+      {% for op in operaciones %}
+      <div class="evento ev-{{ op.operacion }} aparece d{{ [loop.index + 2, 6]|min }}">
+        <div class="tarjeta elevable">
+          <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+            <span class="op op-{{ op.operacion }}">{{ op.operacion }}</span>
+            <span class="text-secondary small"><i class="bi bi-clock me-1"></i>{{ op.fecha_hora|fecha }} · <i class="bi bi-person me-1"></i>{{ op.usuario_bd }}{% if op.usuario_app %} / {{ op.usuario_app }}{% endif %} · <i class="bi bi-pc-display me-1"></i>{{ op.estacion or 'sin estación' }} · {{ op.ip }}</span>
+          </div>
+          <table class="tabla">{% for c in op.cambios %}
+            <tr><td style="width:25%" class="fw-semibold">{{ c.columna }}</td><td><span class="valor-ant">{{ valor(c.valor_anterior) }}</span> <i class="bi bi-arrow-right mx-1 text-secondary"></i> <span class="valor-nue">{{ valor(c.valor_nuevo) }}</span></td></tr>
+          {% endfor %}</table>
+        </div>
+      </div>
+      {% else %}<div class="tarjeta vacio"><i class="bi bi-inbox"></i>No hay cambios registrados para ese registro.</div>{% endfor %}
+    </div>
+  {% else %}
+    <div class="tarjeta vacio aparece d2"><i class="bi bi-hourglass"></i>Elige una tabla, escribe la llave del registro y presiona <strong>Consultar</strong>.</div>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}

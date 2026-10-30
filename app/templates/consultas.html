@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block titulo %}Consultas{% endblock %}
+{% block icono %}bi-search{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / Consultas{% endblock %}
+{% block encabezado %}Consulta <span class="resalte">histórica</span> de cambios{% endblock %}
+{% block subtitulo %}Busca por usuario o por columna, filtra por fechas y exporta en el formato que necesites.{% endblock %}
+{% macro valor(v) %}{% if v is none %}<span class="nulo">nulo</span>{% else %}{{ v }}{% endif %}{% endmacro %}
+{% block contenido %}
+<form class="tarjeta mb-3 aparece d1" method="get">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-2">
+      <label class="form-label">Buscar por</label>
+      <select class="form-select" name="tipo" id="tipo">
+        <option value="usuario" {{ 'selected' if f.tipo == 'usuario' }}>Usuario</option>
+        <option value="columna" {{ 'selected' if f.tipo == 'columna' }}>Columna</option>
+      </select>
+    </div>
+    <div class="col-md-3 filtro-usuario">
+      <label class="form-label">Usuario (BD o aplicación)</label>
+      <select class="form-select" name="usuario"><option value="">— seleccione —</option>
+        {% for u in usuarios %}<option {{ 'selected' if u == f.usuario }}>{{ u }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-md-3 filtro-columna">
+      <label class="form-label">Columna</label>
+      <select class="form-select" name="columna"><option value="">— seleccione —</option>
+        {% for c in columnas %}{% set v = c.esquema ~ '|' ~ c.tabla ~ '|' ~ c.columna %}<option value="{{ v }}" {{ 'selected' if v == f.columna }}>{{ c.esquema }}.{{ c.tabla }}.{{ c.columna }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-md-2 filtro-columna">
+      <label class="form-label">Operación</label>
+      <select class="form-select" name="operacion"><option value="">Todas</option>
+        {% for o in ['INSERT', 'UPDATE', 'DELETE'] %}<option {{ 'selected' if o == f.operacion }}>{{ o }}</option>{% endfor %}</select>
+    </div>
+    <div class="col-md-2"><label class="form-label">Desde</label><input class="form-control" type="date" name="desde" value="{{ f.desde }}"></div>
+    <div class="col-md-2"><label class="form-label">Hasta</label><input class="form-control" type="date" name="hasta" value="{{ f.hasta }}"></div>
+    <div class="col-md-2">
+      <label class="form-label">Vista</label>
+      <select class="form-select" name="vista">
+        <option value="tabla" {{ 'selected' if f.vista == 'tabla' }}>Tabla</option>
+        <option value="linea" {{ 'selected' if f.vista == 'linea' }}>Línea de tiempo</option>
+      </select>
+    </div>
+    <div class="col-md-auto"><button class="btn btn-primario px-4"><i class="bi bi-search me-1"></i>Buscar</button></div>
+  </div>
+</form>
+
+{% if titulo %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 aparece d2">
+  <h5 class="mb-0 texto-navy fw-800">{{ titulo }} <span class="pastilla oro ms-1">{{ total }} filas</span></h5>
+  <div class="d-flex gap-2">
+    {% for fmt, ico in [('csv', 'bi-filetype-csv'), ('xlsx', 'bi-file-earmark-excel'), ('pdf', 'bi-file-earmark-pdf'), ('json', 'bi-filetype-json')] %}
+    <a class="btn btn-exportar" href="/consultas/exportar?{{ query }}&formato={{ fmt }}"><i class="bi {{ ico }} me-1"></i>{{ fmt|upper }}</a>{% endfor %}
+  </div>
+</div>
+{% if total > filas|length %}<div class="alert alert-info aviso"><i class="bi bi-info-circle-fill fs-5"></i><div class="texto">Se muestran las primeras {{ filas|length }} filas; la exportación incluye las {{ total }}.</div></div>{% endif %}
+
+{% if f.vista == 'linea' %}
+<div class="timeline">
+  {% for op in operaciones %}
+  <div class="evento ev-{{ op.operacion }} aparece d{{ [loop.index, 6]|min }}">
+    <div class="tarjeta elevable">
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+        <span class="op op-{{ op.operacion }}">{{ op.operacion }}</span>
+        <strong class="texto-navy">{{ op.esquema }}.{{ op.tabla }}</strong> <span class="td-json">{{ op.pk_registro|json }}</span>
+        <span class="text-secondary ms-auto small"><i class="bi bi-clock me-1"></i>{{ op.fecha_hora|fecha }} · <i class="bi bi-person me-1"></i>{{ op.usuario_bd }}{% if op.usuario_app %} / {{ op.usuario_app }}{% endif %} · <i class="bi bi-pc-display me-1"></i>{{ op.estacion or 'sin estación' }} · {{ op.ip }}</span>
+      </div>
+      <table class="tabla">{% for c in op.cambios %}
+        <tr><td style="width:25%" class="fw-semibold">{{ c.columna }}</td><td><span class="valor-ant">{{ valor(c.valor_anterior) }}</span> <i class="bi bi-arrow-right mx-1 text-secondary"></i> <span class="valor-nue">{{ valor(c.valor_nuevo) }}</span></td></tr>
+      {% endfor %}</table>
+    </div>
+  </div>
+  {% else %}<div class="tarjeta vacio"><i class="bi bi-inbox"></i>Sin resultados.</div>{% endfor %}
+</div>
+{% else %}
+<div class="tarjeta tarjeta-sin-padding aparece d3">
+<div class="table-responsive tabla-scroll">
+<table class="tabla">
+  <thead><tr><th>Fecha y hora</th><th>Operación</th><th>Tabla</th><th>Registro</th><th>Columna</th><th>Valor anterior</th><th>Valor nuevo</th><th>Usuario BD</th><th>Usuario app</th><th>Estación</th><th>IP</th></tr></thead>
+  <tbody>{% for r in filas %}
+    <tr><td class="text-nowrap text-secondary">{{ r.fecha_hora|fecha }}</td><td><span class="op op-{{ r.operacion }}">{{ r.operacion }}</span></td>
+      <td class="fw-semibold">{{ r.esquema }}.{{ r.tabla }}</td><td class="td-json">{{ r.pk_registro|json }}</td><td>{{ r.columna or '' }}</td>
+      <td class="valor-ant">{{ valor(r.valor_anterior) }}</td><td class="valor-nue">{{ valor(r.valor_nuevo) }}</td>
+      <td>{{ r.usuario_bd }}</td><td>{{ r.usuario_app or '' }}</td><td>{{ r.estacion or '' }}</td><td class="text-secondary">{{ r.ip }}</td></tr>
+  {% else %}<tr><td colspan="11" class="vacio"><i class="bi bi-inbox"></i>Sin resultados.</td></tr>{% endfor %}</tbody>
+</table>
+</div>
+</div>
+{% endif %}
+{% else %}
+<div class="tarjeta vacio aparece d2"><i class="bi bi-binoculars"></i>Elige un usuario o una columna y presiona <strong>Buscar</strong>.</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+const tipo = document.getElementById('tipo');
+function filtros() {
+  document.querySelectorAll('.filtro-usuario').forEach(e => e.style.display = tipo.value === 'usuario' ? '' : 'none');
+  document.querySelectorAll('.filtro-columna').forEach(e => e.style.display = tipo.value === 'columna' ? '' : 'none');
+}
+tipo.addEventListener('change', filtros); filtros();
+</script>
+{% endblock %}

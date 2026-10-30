@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block titulo %}Panel{% endblock %}
+{% block icono %}bi-speedometer2{% endblock %}
+{% block migas %}Inicio{% endblock %}
+{% block encabezado %}Panel de <span class="resalte">auditoría</span>{% endblock %}
+{% block subtitulo %}Resumen de la actividad registrada por los triggers en los últimos {{ dias }} días.{% endblock %}
+{% block acciones_portada %}
+<form method="get" class="d-flex align-items-center gap-2">
+  <i class="bi bi-calendar3 text-secondary"></i>
+  <select class="form-select form-select-sm" name="dias" onchange="this.form.submit()" style="min-width:170px">
+    {% for d in [7, 30, 90, 365] %}<option value="{{ d }}" {{ 'selected' if d == dias }}>Últimos {{ d }} días</option>{% endfor %}
+  </select>
+</form>
+{% endblock %}
+{% block contenido %}
+<div class="accesos">
+  <a class="acceso" href="/tablas"><span class="ico"><i class="bi bi-sliders"></i></span><span>Configurar<small>Tablas y columnas</small></span></a>
+  <a class="acceso" href="/consultas?tipo=usuario"><span class="ico"><i class="bi bi-person-badge"></i></span><span>Por usuario<small>Historial completo</small></span></a>
+  <a class="acceso" href="/consultas?tipo=columna"><span class="ico"><i class="bi bi-layout-three-columns"></i></span><span>Por columna<small>Todos sus cambios</small></span></a>
+  <a class="acceso" href="/registro"><span class="ico"><i class="bi bi-clock-history"></i></span><span>Viaje en el tiempo<small>Estado en una fecha</small></span></a>
+</div>
+
+<div class="row g-3 mb-3">
+  {% set kpis = [('Operaciones auditadas', datos.operaciones, 'bi-journal-check', False),
+                 ('Tablas auditadas', datos.tablas_auditadas, 'bi-table', False),
+                 ('Columnas auditadas', datos.columnas_auditadas, 'bi-layout-three-columns', False),
+                 ('Errores', datos.errores, 'bi-bug', datos.errores > 0)] %}
+  {% for etiqueta, valor, icono, alerta in kpis %}
+  <div class="col-6 col-lg-3 aparece d{{ loop.index + 1 }}">
+    <div class="tarjeta kpi elevable {{ 'alerta' if alerta }}">
+      <div class="etiqueta">{{ etiqueta }}</div>
+      <div class="valor mt-1"><span data-contar="{{ valor }}">0</span></div>
+      <span class="ico-kpi"><i class="bi {{ icono }}"></i></span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8 aparece d3">
+    <div class="tarjeta h-100">
+      <div class="tarjeta-titulo"><i class="bi bi-bar-chart-line"></i>Actividad diaria por operación</div>
+      {% if grafica.dias %}<canvas id="grafica" height="120"></canvas>
+      {% else %}<div class="vacio"><i class="bi bi-graph-up"></i>Aún no hay actividad en este periodo.</div>{% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4 d-flex flex-column gap-3 aparece d4">
+    <div class="tarjeta">
+      <div class="tarjeta-titulo"><i class="bi bi-trophy"></i>Usuarios más activos</div>
+      {% set maximo = (datos.top_usuarios|map(attribute='total')|max) if datos.top_usuarios else 1 %}
+      {% for u in datos.top_usuarios %}
+      <div class="mb-2"><div class="d-flex justify-content-between small"><span class="fw-semibold">{{ u.usuario }}</span><span class="text-secondary">{{ u.total }}</span></div>
+        <div class="progress" style="height:6px"><div class="progress-bar" style="width:{{ (u.total / maximo * 100)|round }}%;background:var(--navy)"></div></div></div>
+      {% else %}<div class="vacio py-3"><i class="bi bi-people"></i>Sin actividad</div>{% endfor %}
+    </div>
+    <div class="tarjeta">
+      <div class="tarjeta-titulo"><i class="bi bi-table"></i>Tablas más modificadas</div>
+      {% set maximo_t = (datos.top_tablas|map(attribute='total')|max) if datos.top_tablas else 1 %}
+      {% for t in datos.top_tablas %}
+      <div class="mb-2"><div class="d-flex justify-content-between small"><span class="fw-semibold">{{ t.tabla }}</span><span class="text-secondary">{{ t.total }}</span></div>
+        <div class="progress" style="height:6px"><div class="progress-bar" style="width:{{ (t.total / maximo_t * 100)|round }}%;background:var(--cyan)"></div></div></div>
+      {% else %}<div class="vacio py-3"><i class="bi bi-table"></i>Sin actividad</div>{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="tarjeta tarjeta-sin-padding mt-3 aparece d5">
+  <div class="tarjeta-titulo"><i class="bi bi-lightning-charge"></i>Estado de los triggers</div>
+  <div class="table-responsive"><table class="tabla">
+    <thead><tr><th>Tabla</th><th>Configuraciones activas</th><th>Eventos</th><th>Generado</th><th>Estado</th></tr></thead>
+    <tbody>{% for e in estado %}<tr>
+      <td><a class="fw-semibold" href="/tablas/{{ e.esquema }}/{{ e.tabla }}"><i class="bi bi-table me-1 texto-cian"></i>{{ e.esquema }}.{{ e.tabla }}</a></td>
+      <td>{{ e.configuraciones_activas }}</td>
+      <td>{% for ev in (e.eventos or '').split(',') if ev %}<span class="op op-{{ {'I':'INSERT','U':'UPDATE','D':'DELETE'}[ev] }} me-1">{{ {'I':'INSERT','U':'UPDATE','D':'DELETE'}[ev] }}</span>{% else %}—{% endfor %}</td>
+      <td class="text-secondary">{{ e.generado|fecha }}</td>
+      <td><span class="estado estado-{{ e.estado }}">{{ e.estado }}</span></td></tr>
+    {% else %}<tr><td colspan="5" class="vacio"><i class="bi bi-inboxes"></i>No hay tablas configuradas. <a href="/tablas">Configurar ahora</a></td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const g = {{ grafica|json|safe }};
+const lienzo = document.getElementById('grafica');
+if (lienzo) {
+  const colores = {INSERT: '#00c1d4', UPDATE: '#003865', DELETE: '#e0795a'};
+  Chart.defaults.font.family = '"Open Sans", sans-serif';
+  Chart.defaults.color = '#6b7280';
+  new Chart(lienzo, {
+    type: 'bar',
+    data: { labels: g.dias, datasets: Object.entries(g.series).map(([k, v]) => ({label: k, data: v, backgroundColor: colores[k], borderRadius: 4, maxBarThickness: 38})) },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10 } },
+                 tooltip: { backgroundColor: '#003865', padding: 10, cornerRadius: 8 } },
+      scales: { x: { stacked: true, grid: { display: false } },
+                y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef2f5' } } }
+    }
+  });
+}
+</script>
+{% endblock %}

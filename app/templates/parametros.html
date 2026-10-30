@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Parámetros{% endblock %}
+{% block icono %}bi-gear{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / Parámetros{% endblock %}
+{% block encabezado %}Parámetros del <span class="resalte">sistema</span>{% endblock %}
+{% block subtitulo %}Política de privacidad de la IP y comportamiento ante errores durante la ejecución de los triggers.{% endblock %}
+{% block contenido %}
+<div class="row g-3">
+  {% set iconos = {'modo_ip': 'bi-incognito', 'modo_error': 'bi-exclamation-diamond', 'sal_ip': 'bi-shuffle'} %}
+  {% for p in parametros %}
+  <div class="col-lg-4 aparece d{{ loop.index }}">
+    <div class="tarjeta elevable h-100 d-flex flex-column">
+      <div class="tarjeta-titulo"><i class="bi {{ iconos.get(p.clave, 'bi-gear') }}"></i>{{ p.clave }}</div>
+      <p class="small text-secondary flex-grow-1">{{ p.descripcion }}</p>
+      <form method="post" class="d-flex gap-2">
+        <input type="hidden" name="clave" value="{{ p.clave }}">
+        {% if p.clave == 'modo_ip' %}
+          <select class="form-select" name="valor">{% for v in ['completa', 'enmascarada', 'hash'] %}<option {{ 'selected' if v == p.valor }}>{{ v }}</option>{% endfor %}</select>
+        {% elif p.clave == 'modo_error' %}
+          <select class="form-select" name="valor">{% for v in ['estricto', 'tolerante'] %}<option {{ 'selected' if v == p.valor }}>{{ v }}</option>{% endfor %}</select>
+        {% elif p.clave == 'sal_ip' %}
+          <input class="form-control" type="password" name="valor" placeholder="nueva sal" required autocomplete="off">
+        {% else %}
+          <input class="form-control" name="valor" value="{{ p.valor }}" required>
+        {% endif %}
+        <button class="btn btn-primario"><i class="bi bi-check2"></i></button>
+      </form>
+      <div class="small text-secondary mt-2"><i class="bi bi-clock me-1"></i>{{ p.modificado|fecha }} · {{ p.modificado_por }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

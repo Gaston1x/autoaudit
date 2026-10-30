@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block titulo %}{{ esquema }}.{{ tabla }}{% endblock %}
+{% block icono %}bi-table{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / <a href="/tablas">Configuración</a> / {{ esquema }}.{{ tabla }}{% endblock %}
+{% block encabezado %}{{ esquema }}.<span class="resalte">{{ tabla }}</span>{% endblock %}
+{% block subtitulo %}Marca qué eventos se auditan en cada columna. El trigger se genera automáticamente en PL/pgSQL.{% endblock %}
+{% block acciones_portada %}{% if estado %}<span class="estado estado-{{ estado.estado }} fs-6 px-3 py-2">Trigger: {{ estado.estado }}</span>{% endif %}{% endblock %}
+{% block contenido %}
+<form method="post">
+<div class="tarjeta tarjeta-sin-padding mb-3 aparece d1">
+  <div class="tarjeta-titulo"><i class="bi bi-layout-three-columns"></i>Columnas y eventos</div>
+  <div class="table-responsive"><table class="tabla">
+    <thead><tr><th>#</th><th>Columna</th><th>Tipo de dato</th><th>Nulo</th><th>Llave</th><th>Descripción</th>
+      {% for cod, nombre in eventos %}<th class="text-center"><span class="op op-{{ nombre }}">{{ nombre }}</span>{% if sesion.es_admin %}<div class="mt-1"><input type="checkbox" class="form-check-input todos" data-ev="{{ cod }}" title="Marcar todas"></div>{% endif %}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for c in columnas %}
+    <tr>
+      <td class="text-secondary">{{ c.attnum }}</td><td class="fw-bold texto-navy">{{ c.columna }}</td><td><code>{{ c.tipo_dato }}</code></td>
+      <td>{{ 'No' if c.no_nulo else 'Sí' }}</td><td>{% if c.es_pk %}<span class="pastilla oro"><i class="bi bi-key-fill"></i> PK</span>{% endif %}</td>
+      <td class="text-secondary small">{{ c.comentario or '' }}</td>
+      {% for cod, marcado in [('I', c.audita_insert), ('U', c.audita_update), ('D', c.audita_delete)] %}
+      <td class="text-center"><input type="checkbox" class="form-check-input ev-{{ cod }}" name="ev|{{ c.columna }}|{{ cod }}" {{ 'checked' if marcado }} {{ 'disabled' if not sesion.es_admin }}></td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% if sesion.es_admin %}
+<div class="tarjeta d-flex flex-wrap gap-2 mb-3 aparece d2">
+  <button class="btn btn-contorno" name="accion" value="previsualizar"><i class="bi bi-eye me-1"></i>Vista previa del SQL</button>
+  <button class="btn btn-primario" name="accion" value="guardar"><i class="bi bi-lightning-charge-fill me-1"></i>Guardar y generar trigger</button>
+  <button class="btn btn-contorno" name="accion" value="regenerar"><i class="bi bi-arrow-repeat me-1"></i>Regenerar</button>
+  <button class="btn btn-peligro ms-auto" name="accion" value="desactivar" onclick="return confirm('¿Desactivar la auditoría de esta tabla? La bitácora histórica se conserva.')"><i class="bi bi-power me-1"></i>Desactivar auditoría</button>
+</div>
+{% else %}
+<div class="alert alert-info aviso"><i class="bi bi-info-circle-fill fs-5"></i><div class="texto">Solo los administradores de auditoría pueden cambiar la configuración.</div></div>
+{% endif %}
+</form>
+
+{% if vista_previa %}
+<div class="ventana-sql mb-3 aparece">
+  <div class="barra"><span style="background:#ef4444"></span><span style="background:#f59e0b"></span><span style="background:#22c55e"></span><span class="ms-2" style="width:auto;height:auto">Vista previa · no se ha guardado nada</span></div>
+  <pre class="sql">{{ vista_previa }}</pre>
+</div>
+{% endif %}
+
+<div class="tarjeta tarjeta-sin-padding aparece d3">
+  <div class="tarjeta-titulo"><i class="bi bi-clock-history"></i>Historial de triggers generados</div>
+  <div class="table-responsive"><table class="tabla">
+    <thead><tr><th>#</th><th>Eventos</th><th>Estado</th><th>Generado</th><th>Por</th><th></th></tr></thead>
+    <tbody>{% for h in historial %}
+      <tr><td>{{ h.id }}</td><td><span class="pastilla">{{ h.eventos or '—' }}</span></td>
+        <td><span class="pastilla {{ '' if h.estado == 'ACTIVO' else 'gris' }}">{{ h.estado }}</span></td><td class="text-secondary">{{ h.generado|fecha }}</td><td>{{ h.generado_por }}</td>
+        <td class="text-end"><button class="btn btn-exportar" type="button" data-bs-toggle="collapse" data-bs-target="#ddl{{ h.id }}"><i class="bi bi-code-slash me-1"></i>SQL</button></td></tr>
+      <tr class="collapse" id="ddl{{ h.id }}"><td colspan="6"><pre class="sql">{{ h.ddl }}</pre></td></tr>
+    {% else %}<tr><td colspan="6" class="vacio"><i class="bi bi-lightning"></i>Aún no se ha generado ningún trigger para esta tabla.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.todos').forEach(t => t.addEventListener('change', () =>
+  document.querySelectorAll('.ev-' + t.dataset.ev).forEach(c => c.checked = t.checked)));
+</script>
+{% endblock %}

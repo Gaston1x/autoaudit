@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Usuarios y estaciones{% endblock %}
+{% block icono %}bi-people{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / Usuarios y estaciones{% endblock %}
+{% block encabezado %}Usuarios y <span class="resalte">estaciones</span>{% endblock %}
+{% block subtitulo %}Se registran solos la primera vez que hacen un cambio. Un administrador puede excluir, por ejemplo, un proceso de carga masiva.{% endblock %}
+{% macro interruptor(tipo, fila) %}
+{% if sesion.es_admin %}
+<form method="post" action="/usuarios/{{ tipo }}/{{ fila.id }}" class="d-inline">
+  <input type="hidden" name="auditar" value="{{ '0' if fila.auditar else '1' }}">
+  <button class="btn btn-sm {{ 'btn-primario' if fila.auditar else 'btn-contorno' }}" title="Cambiar"><i class="bi {{ 'bi-eye' if fila.auditar else 'bi-eye-slash' }} me-1"></i>{{ 'Auditado' if fila.auditar else 'Excluido' }}</button>
+</form>
+{% else %}<span class="estado {{ 'estado-OK' if fila.auditar else 'estado-SIN_AUDITORIA' }}">{{ 'Auditado' if fila.auditar else 'Excluido' }}</span>{% endif %}
+{% endmacro %}
+{% block contenido %}
+<div class="row g-3">
+  <div class="col-xl-6 aparece d1"><div class="tarjeta tarjeta-sin-padding h-100">
+    <div class="tarjeta-titulo"><i class="bi bi-person-badge"></i>Usuarios</div>
+    <div class="table-responsive"><table class="tabla"><thead><tr><th>Usuario</th><th>Primera actividad</th><th>Operaciones</th><th></th></tr></thead>
+    <tbody>{% for u in usuarios %}<tr>
+      <td><div class="d-flex align-items-center gap-2"><span class="avatar" style="width:30px;height:30px;font-size:.72rem">{{ u.usuario_bd[:2]|upper }}</span>
+        <span class="lh-sm"><span class="fw-bold texto-navy">{{ u.usuario_bd }}</span>{% if u.usuario_app %}<span class="d-block small text-secondary">app: {{ u.usuario_app }}</span>{% endif %}</span></div></td>
+      <td class="text-secondary">{{ u.primera_actividad|fecha }}</td><td><span class="pastilla">{{ u.operaciones }}</span></td>
+      <td class="text-end">{{ interruptor('usuario', u) }}</td></tr>{% else %}<tr><td colspan="4" class="vacio"><i class="bi bi-people"></i>Aún no hay actividad.</td></tr>{% endfor %}</tbody></table></div>
+  </div></div>
+  <div class="col-xl-6 aparece d2"><div class="tarjeta tarjeta-sin-padding h-100">
+    <div class="tarjeta-titulo"><i class="bi bi-pc-display"></i>Estaciones de trabajo</div>
+    <div class="table-responsive"><table class="tabla"><thead><tr><th>IP</th><th>Estación</th><th>Aplicación</th><th>Operaciones</th><th></th></tr></thead>
+    <tbody>{% for e in estaciones %}<tr><td><code>{{ e.ip }}</code></td><td class="fw-semibold">{{ e.hostname or '—' }}</td><td class="text-secondary">{{ e.aplicacion or '—' }}</td><td><span class="pastilla">{{ e.operaciones }}</span></td>
+      <td class="text-end">{{ interruptor('estacion', e) }}</td></tr>{% else %}<tr><td colspan="5" class="vacio"><i class="bi bi-pc-display"></i>Aún no hay actividad.</td></tr>{% endfor %}</tbody></table></div>
+  </div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{
+  "universidad": "Universidad Mariano Gálvez de Guatemala",
+  "facultad": "Facultad de Ingeniería en Sistemas de Información y Ciencias de la Computación",
+  "curso": "Bases de Datos I",
+  "catedratico": "René Ornélyz",
+  "integrantes": [
+    {"nombre": "Carlos Mendez", "carne": "9490-24-17379"},
+    {"nombre": "Maycol Ortiz", "carne": "9490-24-27213"}
+  ],
+  "repositorio": "https://github.com/Gaston1x/autoaudit",
+  "fecha": "noviembre de 2026"
+}

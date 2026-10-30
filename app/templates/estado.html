@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Estado{% endblock %}
+{% block icono %}bi-activity{% endblock %}
+{% block migas %}<a href="/">Inicio</a> / Estado{% endblock %}
+{% block encabezado %}Estado de la <span class="resalte">auditoría</span>{% endblock %}
+{% block subtitulo %}Compara la configuración guardada con los triggers que existen realmente en <code>pg_trigger</code>.{% endblock %}
+{% block acciones_portada %}{% if sesion.es_admin %}<form method="post" action="/estado/regenerar"><button class="btn btn-dorado"><i class="bi bi-arrow-repeat me-1"></i>Regenerar todos</button></form>{% endif %}{% endblock %}
+{% block contenido %}
+<div class="tarjeta tarjeta-sin-padding mb-4 aparece d1">
+  <div class="tarjeta-titulo"><i class="bi bi-lightning-charge"></i>Triggers por tabla</div>
+  <div class="table-responsive"><table class="tabla">
+    <thead><tr><th>Tabla</th><th>Activa</th><th>Configuraciones activas</th><th>Eventos</th><th>Generado</th><th>Por</th><th>Estado</th></tr></thead>
+    <tbody>{% for e in estado %}<tr>
+      <td><a class="fw-semibold" href="/tablas/{{ e.esquema }}/{{ e.tabla }}"><i class="bi bi-table me-1 texto-cian"></i>{{ e.esquema }}.{{ e.tabla }}</a></td><td>{{ 'Sí' if e.activa else 'No' }}</td>
+      <td>{{ e.configuraciones_activas }}</td><td><span class="pastilla">{{ e.eventos or '—' }}</span></td><td class="text-secondary">{{ e.generado|fecha }}</td><td>{{ e.generado_por or '' }}</td>
+      <td><span class="estado estado-{{ e.estado }}">{{ e.estado }}</span></td></tr>
+    {% else %}<tr><td colspan="7" class="vacio"><i class="bi bi-inboxes"></i>Sin tablas configuradas.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</div>
+{% if sesion.es_admin %}
+<div class="row g-3">
+  <div class="col-xl-6 aparece d2">
+    <div class="tarjeta tarjeta-sin-padding h-100">
+      <div class="tarjeta-titulo"><i class="bi bi-bug"></i>Errores recientes</div>
+      <div class="table-responsive tabla-scroll"><table class="tabla">
+        <thead><tr><th>Fecha</th><th>Usuario</th><th>Contexto</th><th>Mensaje</th></tr></thead>
+        <tbody>{% for e in errores %}<tr><td class="text-nowrap text-secondary">{{ e.fecha|fecha }}</td><td>{{ e.usuario }}</td><td><span class="pastilla gris">{{ e.contexto }}</span>{% if e.tabla %}<div class="small text-secondary">{{ e.tabla }}</div>{% endif %}</td>
+          <td>{% if e.sqlstate %}<code>{{ e.sqlstate }}</code> {% endif %}{{ e.mensaje }}{% if e.detalle %}<details><summary class="small">detalle</summary><pre class="small mb-0 text-wrap">{{ e.detalle }}</pre></details>{% endif %}</td></tr>
+        {% else %}<tr><td colspan="4" class="vacio"><i class="bi bi-emoji-smile"></i>Sin errores registrados.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="col-xl-6 aparece d3">
+    <div class="tarjeta tarjeta-sin-padding h-100">
+      <div class="tarjeta-titulo"><i class="bi bi-journal-text"></i>Cambios de configuración</div>
+      <div class="table-responsive tabla-scroll"><table class="tabla">
+        <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead>
+        <tbody>{% for c in cambios %}<tr><td class="text-nowrap text-secondary">{{ c.fecha|fecha }}</td><td>{{ c.usuario }}</td>
+          <td><span class="pastilla {{ 'oro' if c.accion.startswith('DDL') else '' }}">{{ c.accion }}</span>{% if c.tabla %}<div class="small text-secondary">{{ c.tabla }}</div>{% endif %}</td>
+          <td class="td-json">{{ c.detalle|json }}</td></tr>
+        {% else %}<tr><td colspan="4" class="vacio"><i class="bi bi-inbox"></i>Sin cambios.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

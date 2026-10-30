@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}AutoAudit{% endblock %} · AutoAudit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/static/app.css?v={{ version }}-2" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23003865'/%3E%3Crect x='22' y='3' width='7' height='7' rx='1.5' fill='%23fdb913'/%3E%3Ctext x='7' y='23' font-family='Arial' font-weight='700' font-size='16' fill='white'%3EA%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+{% block pagina %}
+{% set ruta = request.url.path %}
+<div class="container-xxl px-3 px-lg-4">
+  <div class="barra-util d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span class="estado-bd"><span class="punto"></span>Conectado a PostgreSQL 18 · base <strong class="texto-navy">autoaudit</strong></span>
+    <div class="usuario-actual">
+      <i class="bi bi-person-circle fs-4 texto-navy"></i>
+      <div><div class="nombre">{{ sesion.usuario }}</div><div class="rol">{{ 'Administrador de auditoría' if sesion.es_admin else 'Lector de auditoría' }}</div></div>
+      <a class="btn btn-primario btn-sm ms-2" href="/salir"><i class="bi bi-box-arrow-right me-1"></i>Salir</a>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-expand-xl menu-principal">
+    <a class="navbar-brand marca" href="/"><span class="marca-logo"><i class="bi bi-shield-check"></i></span>AutoAudit</a>
+    <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Menú"><i class="bi bi-list fs-3 texto-navy"></i></button>
+    <div class="collapse navbar-collapse" id="menu">
+      <ul class="navbar-nav ms-xl-auto gap-xl-1">
+        {% set menu = [('/', 'bi-grid', 'Panel'), ('/tablas', 'bi-sliders', 'Configuración'), ('/consultas', 'bi-search', 'Consultas'),
+                       ('/registro', 'bi-clock-history', 'Historial'), ('/usuarios', 'bi-people', 'Usuarios'), ('/estado', 'bi-activity', 'Estado'),
+                       ('/diccionario', 'bi-journal-text', 'Diccionario')] %}
+        {% if sesion.es_admin %}{% set menu = menu + [('/parametros', 'bi-gear', 'Parámetros')] %}{% endif %}
+        {% for url, icono, nombre in menu %}
+        <li class="nav-item"><a class="nav-link {{ 'activo' if (ruta == url or (url != '/' and ruta.startswith(url))) }}" href="{{ url }}"><i class="bi {{ icono }}"></i>{{ nombre }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </nav>
+
+  <section class="portada aparece">
+    <div class="icono-portada"><i class="bi {% block icono %}bi-shield-check{% endblock %}"></i></div>
+    <div class="flex-grow-1">
+      <div class="migas">{% block migas %}<a href="/">Inicio</a>{% endblock %}</div>
+      <h1>{% block encabezado %}{{ self.titulo() }}{% endblock %}</h1>
+      <p class="subtitulo">{% block subtitulo %}{% endblock %}</p>
+    </div>
+    <div>{% block acciones_portada %}{% endblock %}</div>
+  </section>
+
+  <main>
+    {% for tipo, texto in mensajes %}
+    <div class="alert alert-{{ tipo }} aviso alert-dismissible fade show" role="alert">
+      <i class="bi {{ {'success': 'bi-check-circle', 'danger': 'bi-x-circle', 'warning': 'bi-exclamation-triangle'}.get(tipo, 'bi-info-circle') }} fs-5"></i>
+      <div class="texto">{{ texto }}</div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+    {% endfor %}
+    {% block contenido %}{% endblock %}
+  </main>
+
+  <footer class="pie d-flex flex-wrap justify-content-between gap-2">
+    <span><strong class="texto-navy">AutoAudit</strong> v{{ version }} · Sistema de auditoría automatizado</span>
+    <span>PostgreSQL 18 · Ubuntu 26.04 LTS · Python · Universidad Mariano Gálvez de Guatemala</span>
+  </footer>
+</div>
+{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/app.js?v={{ version }}-2"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
