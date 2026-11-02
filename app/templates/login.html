@@ -18,8 +18,14 @@
       </div>
       <div class="col-lg-5 d-flex align-items-center">
         <div class="login-tarjeta w-100">
-          <h2 class="mb-1">Iniciar sesión</h2>
-          <p class="text-secondary mb-4">Ingresa con tu usuario de PostgreSQL.</p>
+          <h2 class="mb-4">Iniciar sesión</h2>
+          {% if demo %}
+          <div class="alert alert-info aviso py-2 mb-4">
+            <i class="bi bi-eye"></i>
+            <div class="texto small"><strong>Acceso de demostración (solo lectura)</strong><br>
+              Usuario <code>{{ demo.usuario }}</code> · Contraseña <code>{{ demo.clave }}</code></div>
+          </div>
+          {% endif %}
           {% if error %}<div class="alert alert-danger aviso py-2"><i class="bi bi-x-circle"></i><div class="texto">{{ error }}</div></div>{% endif %}
           <form method="post" action="/login">
             <label class="form-label" for="usuario">Usuario</label>

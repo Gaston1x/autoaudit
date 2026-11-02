@@ -16,6 +16,8 @@ quién cambió qué, cuándo, desde dónde, y cuál era el valor antes y despué
 
 **[🌐 Ver demo en vivo](https://autoaudit-umg.mexicocentral.cloudapp.azure.com)** · [Documentación (PDF)](docs/AutoAudit_Documentacion.pdf) · [Instalación](#instalación) · [Uso](#uso) · [Pruebas](#pruebas-y-rendimiento)
 
+Acceso a la demo (solo lectura): usuario **`aa_lector`** · contraseña **`DemoAutoAudit2026`**
+
 <img src="docs/img/ui_panel.png" alt="Panel de AutoAudit" width="900">
 
 </div>
@@ -39,7 +41,7 @@ escapa, venga de donde venga.
 | 🔗 **Se adapta a cambios de estructura** | Event triggers detectan `DROP TABLE`, `DROP COLUMN`, `RENAME` y triggers borrados o deshabilitados a mano. |
 | 🔎 **Consultas y reportes** | Por usuario, por columna, historial de un registro y "viaje en el tiempo"; exportación a CSV, Excel, PDF y JSON. |
 | 🔐 **Seguridad por roles** | Solo administradores configuran; lectores consultan con la IP enmascarada; política de privacidad configurable (completa, enmascarada o hash). |
-| 🧪 **Probado** | 81 pruebas automáticas en cada cambio y pruebas de rendimiento con más de un millón de registros. |
+| 🧪 **Probado** | 82 pruebas automáticas en cada cambio y pruebas de rendimiento con más de un millón de registros. |
 
 ## Capturas
 
@@ -96,13 +98,17 @@ sudo bash scripts/install.sh       # PostgreSQL 18, base de datos, datos de ejem
 .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Abre <http://localhost:8000>. Usuarios de prueba (solo para el entorno local, ver [`.env.example`](.env.example)):
+Abre <http://localhost:8000>. Usuarios que crea la instalación local (ver [`.env.example`](.env.example)):
 
-| Usuario | Contraseña | Rol |
-|---|---|---|
-| `aa_admin` | `AutoAudit.Admin1` | Administrador de auditoría |
-| `aa_lector` | `AutoAudit.Lector1` | Lector |
-| `cajero1`, `cajero2` | ver `.env.example` | Usuarios de negocio (sus cambios se auditan) |
+| Usuario | Contraseña | ¿Entra a la web? | Rol |
+|---|---|---|---|
+| `aa_admin` | `AutoAudit.Admin1` | Sí | Administrador de auditoría: configura y consulta |
+| `aa_lector` | `AutoAudit.Lector1` | Sí | Lector: solo consulta |
+| `cajero1` | `Cajero.Uno1` | No | Usuario de negocio: sus cambios en `demo.*` se auditan |
+| `cajero2` | `Cajero.Dos2` | No | Usuario de negocio: sus cambios en `demo.*` se auditan |
+
+> Estas contraseñas son solo para una instalación local. La **demo en línea** usa contraseñas propias:
+> el acceso público de solo lectura es `aa_lector` / `DemoAutoAudit2026`; la del administrador no se publica.
 
 Instalación manual y despliegue en un esquema propio: sección 7 de la [documentación](docs/AutoAudit_Documentacion.pdf).
 
@@ -112,10 +118,10 @@ La demo en vivo corre en una máquina virtual de Azure (Ubuntu 26.04 LTS, regió
 
 ```bash
 git clone https://github.com/Gaston1x/autoaudit.git && cd autoaudit
-sudo DOMINIO=mi-dominio.com bash scripts/desplegar_servidor.sh
+sudo DOMINIO=mi-dominio.com CLAVE_DEMO=una-clave-publica bash scripts/desplegar_servidor.sh
 ```
 
-El script instala todo, cambia las contraseñas de prueba por unas aleatorias, deja la aplicación como servicio `systemd` y la publica con HTTPS automático (Caddy + Let's Encrypt).
+El script instala todo, cambia las contraseñas de prueba por unas aleatorias (quedan en `/root/autoaudit_credenciales.txt`), deja la aplicación como servicio `systemd` y la publica con HTTPS automático (Caddy + Let's Encrypt). `CLAVE_DEMO` es opcional: asigna esa contraseña al usuario de solo lectura y la muestra en la pantalla de inicio.
 
 ## Uso
 
@@ -151,7 +157,7 @@ Más ejemplos en [`ejemplos/`](ejemplos/).
 
 | Medición | Resultado |
 |---|---|
-| Pruebas funcionales | **81 de 81** aprobadas |
+| Pruebas funcionales | **82 de 82** aprobadas |
 | Costo por transacción típica (INSERT + UPDATE de una fila) | **menos de 1 ms** |
 | Costo por fila en cargas masivas | ~110 µs (≈7 µs si el usuario de carga se excluye) |
 | Consultas históricas con 1.3 millones de filas en la bitácora | **menos de 15 ms** |

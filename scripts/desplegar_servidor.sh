@@ -3,6 +3,7 @@
 # AutoAudit - despliegue en un servidor Ubuntu 26.04 con HTTPS
 # Uso (en el servidor, dentro del repositorio clonado):
 #     sudo DOMINIO=midominio.com bash scripts/desplegar_servidor.sh
+#     sudo DOMINIO=midominio.com CLAVE_DEMO=una-clave bash scripts/desplegar_servidor.sh   # + acceso demo
 #
 # 1. Instala PostgreSQL 18, la base y el entorno de Python (scripts/install.sh).
 # 2. Carga actividad de ejemplo y cambia las contraseñas de prueba por unas
@@ -33,6 +34,15 @@ if [ ! -f "$CREDENCIALES" ]; then
     done
     # Credenciales de la CLI en el servidor
     sed -i "s/^AA_CLAVE=.*/AA_CLAVE=$(grep '^aa_admin=' "$CREDENCIALES" | cut -d= -f2)/" "${DIR}/.env"
+fi
+
+# Acceso público de solo lectura (opcional): CLAVE_DEMO=... asigna esa contraseña
+# a aa_lector y la muestra en la pantalla de inicio de sesión.
+if [ -n "${CLAVE_DEMO:-}" ]; then
+    sudo -u postgres psql -q -X -d autoaudit -c "ALTER ROLE aa_lector PASSWORD '${CLAVE_DEMO}'"
+    sed -i "s/^aa_lector=.*/aa_lector=${CLAVE_DEMO}/" "$CREDENCIALES"
+    sed -i '/^AA_DEMO_/d' "${DIR}/.env"
+    printf 'AA_DEMO_USUARIO=aa_lector\nAA_DEMO_CLAVE=%s\n' "${CLAVE_DEMO}" >> "${DIR}/.env"
 fi
 
 echo "== 3. Servicio systemd"

@@ -15,6 +15,7 @@ from fastapi.templating import Jinja2Templates
 
 from . import __version__, auth, exportar, servicios
 from .auth import Sesion
+from .config import config
 from .db import ErrorAutoAudit, conectar, mensaje_error
 
 BASE = Path(__file__).resolve().parent
@@ -28,7 +29,8 @@ EVENTOS = [("I", "INSERT"), ("U", "UPDATE"), ("D", "DELETE")]
 
 
 def pagina(request: Request, nombre: str, sesion: Sesion | None = None, **ctx) -> HTMLResponse:
-    ctx.update(sesion=sesion, mensajes=sesion.tomar_mensajes() if sesion else [], version=__version__)
+    ctx.update(sesion=sesion, mensajes=sesion.tomar_mensajes() if sesion else [], version=__version__,
+               demo={"usuario": config.demo_usuario, "clave": config.demo_clave} if config.demo_usuario else None)
     return plantillas.TemplateResponse(request, nombre, ctx)
 
 

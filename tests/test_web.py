@@ -31,6 +31,18 @@ def test_usuario_sin_rol_de_auditoria_no_entra():
     assert "no tiene permisos de auditoría" in r.text
 
 
+def test_acceso_demo_en_inicio(monkeypatch):
+    import dataclasses
+    import app.main as principal
+
+    r = TestClient(app).get("/login")
+    assert "Acceso de demostración" not in r.text  # sin configurar no se muestra
+    monkeypatch.setattr(principal, "config",
+                        dataclasses.replace(principal.config, demo_usuario="aa_lector", demo_clave="clave-demo"))
+    r = TestClient(app).get("/login")
+    assert "Acceso de demostración" in r.text and "clave-demo" in r.text
+
+
 def test_paginas_requieren_sesion():
     r = TestClient(app).get("/consultas", follow_redirects=False)
     assert r.status_code == 303 and r.headers["location"] == "/login"
