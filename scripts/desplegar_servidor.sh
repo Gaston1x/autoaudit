@@ -22,7 +22,8 @@ DEMO=1 bash "${DIR}/scripts/install.sh"
 
 echo "== 2. Datos de ejemplo y contraseñas"
 if [ ! -f "$CREDENCIALES" ]; then
-    sudo -u postgres psql -q -X -d autoaudit -f "${DIR}/ejemplos/04_actividad_demo.sql" || true
+    # Se pasa por stdin: el usuario postgres no puede leer el directorio personal del usuario.
+    sudo -u postgres psql -q -X -d autoaudit < "${DIR}/ejemplos/04_actividad_demo.sql" || true
     : > "$CREDENCIALES"
     chmod 600 "$CREDENCIALES"
     for rol in aa_admin aa_lector cajero1 cajero2; do

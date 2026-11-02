@@ -14,7 +14,7 @@ quién cambió qué, cuándo, desde dónde, y cuál era el valor antes y despué
 ![Ubuntu 26.04](https://img.shields.io/badge/Ubuntu-26.04_LTS-003865?logo=ubuntu&logoColor=white)
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-00AEBF)](LICENSE)
 
-[Documentación (PDF)](docs/AutoAudit_Documentacion.pdf) · [Instalación](#instalación) · [Uso](#uso) · [Pruebas](#pruebas-y-rendimiento)
+**[🌐 Ver demo en vivo](https://autoaudit-umg.mexicocentral.cloudapp.azure.com)** · [Documentación (PDF)](docs/AutoAudit_Documentacion.pdf) · [Instalación](#instalación) · [Uso](#uso) · [Pruebas](#pruebas-y-rendimiento)
 
 <img src="docs/img/ui_panel.png" alt="Panel de AutoAudit" width="900">
 
@@ -105,6 +105,17 @@ Abre <http://localhost:8000>. Usuarios de prueba (solo para el entorno local, ve
 | `cajero1`, `cajero2` | ver `.env.example` | Usuarios de negocio (sus cambios se auditan) |
 
 Instalación manual y despliegue en un esquema propio: sección 7 de la [documentación](docs/AutoAudit_Documentacion.pdf).
+
+### Publicarlo en internet con HTTPS
+
+La demo en vivo corre en una máquina virtual de Azure (Ubuntu 26.04 LTS, región México Central). En cualquier servidor Ubuntu con un nombre DNS apuntando a él:
+
+```bash
+git clone https://github.com/Gaston1x/autoaudit.git && cd autoaudit
+sudo DOMINIO=mi-dominio.com bash scripts/desplegar_servidor.sh
+```
+
+El script instala todo, cambia las contraseñas de prueba por unas aleatorias, deja la aplicación como servicio `systemd` y la publica con HTTPS automático (Caddy + Let's Encrypt).
 
 ## Uso
 

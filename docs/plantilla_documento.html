@@ -72,6 +72,7 @@
     <tr><td>Catedrático</td><td>{{ p.catedratico }}</td></tr>
     <tr><td>Integrantes</td><td>{% for i in p.integrantes %}{{ i.nombre }} — {{ i.carne }}<br>{% endfor %}</td></tr>
     <tr><td>Repositorio</td><td>{{ p.repositorio }}</td></tr>
+    {% if p.demo %}<tr><td>Demo en línea</td><td>{{ p.demo }}</td></tr>{% endif %}
     <tr><td>Plataforma</td><td>PostgreSQL 18 · {{ so or 'Ubuntu 26.04 LTS' }} · Python</td></tr>
     <tr><td>Fecha</td><td>{{ p.fecha }}</td></tr>
   </table>
@@ -322,13 +323,19 @@ cp .env.example .env
   <tr><td><code>90_demo_datos.sql</code></td><td>Esquema de ejemplo y usuarios de prueba.</td></tr>
 </table>
 
-<h2>7.4 Preparar un esquema de negocio propio</h2>
+<h2>7.4 Publicación en internet (demo en línea)</h2>
+<p>La aplicación está publicada en <strong>{{ p.demo }}</strong>, en una máquina virtual de Azure con Ubuntu 26.04 LTS y PostgreSQL 18 (región México Central). Para replicarlo en cualquier servidor Ubuntu con un nombre DNS:</p>
+<pre>git clone {{ p.repositorio }}.git && cd autoaudit
+sudo DOMINIO=mi-dominio.com bash scripts/desplegar_servidor.sh</pre>
+<p>El script instala todo, reemplaza las contraseñas de prueba por unas aleatorias, deja la aplicación como servicio <code>systemd</code> escuchando solo en <code>127.0.0.1</code> y la publica con HTTPS automático mediante Caddy y Let's Encrypt. PostgreSQL no queda expuesto a internet: el firewall solo abre los puertos 80 y 443.</p>
+
+<h2>7.5 Preparar un esquema de negocio propio</h2>
 <p>Para crear y eliminar triggers PostgreSQL exige ser dueño de la tabla. Se delega el rol dueño del esquema de negocio al dueño de AutoAudit y se crean los usuarios de auditoría:</p>
 <pre>GRANT dueno_de_mis_tablas TO autoaudit_owner;
 CREATE ROLE auditor1 LOGIN PASSWORD '...';   GRANT autoaudit_admin  TO auditor1;
 CREATE ROLE consulta1 LOGIN PASSWORD '...';  GRANT autoaudit_lector TO consulta1;</pre>
 
-<h2>7.5 Despliegue de los triggers</h2>
+<h2>7.6 Despliegue de los triggers</h2>
 <div class="paso"><div class="n">1</div><div>Configure cada tabla (sección 6). Al guardar, el trigger se despliega en la misma transacción.</div></div>
 <div class="paso"><div class="n">2</div><div>Para redesplegar todos los triggers (por ejemplo, tras restaurar un respaldo): botón <strong>Regenerar todos</strong> en Estado, o <code>SELECT * FROM autoaudit.fn_regenerar_todos(true);</code></div></div>
 <div class="paso"><div class="n">3</div><div>Verifique con <code>SELECT * FROM autoaudit.v_estado_triggers;</code> que todas las tablas estén en <code>OK</code>.</div></div>
