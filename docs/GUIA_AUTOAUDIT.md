@@ -295,13 +295,4 @@ autoaudit/
 | 4. Docs | ER, diccionario, manuales, PDF final, README con capturas |
 | 5. Entrega | Push a GitHub, PDF, demo |
 
-## 12. Lo que se necesita instalar en la máquina
 
-| Herramienta | Estado actual | Para qué |
-|---|---|---|
-| Git | ✅ instalado (2.55) | Repositorio |
-| Python 3.13 | ❌ falta | Todo el código Python |
-| PostgreSQL 18 | ❌ falta | Base de datos |
-| Ubuntu 26.04 (WSL2 o VM) | ❌ falta | Requisito técnico / evidencia de despliegue |
-| Docker Desktop (opcional) | ❌ falta | Alternativa de despliegue con un comando |
-| Cuenta GitHub + `gh` CLI (opcional) | ? | Subir el repositorio |
