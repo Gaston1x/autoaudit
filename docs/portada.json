@@ -4,8 +4,9 @@
   "curso": "Bases de Datos I",
   "catedratico": "René Ornélyz",
   "integrantes": [
-    {"nombre": "Carlos Mendez", "carne": "9490-24-17379"},
-    {"nombre": "Maycol Ortiz", "carne": "9490-24-27213"}
+    {"nombre": "Carlos Abraham Mendez Asencio", "carne": "9490-24-17379"},
+    {"nombre": "Maycol Alexander Ortiz Flores", "carne": "9490-24-27213"},
+    {"nombre": "Keila Daniela Silva Aguilar", "carne": ""}
   ],
   "repositorio": "https://github.com/Gaston1x/autoaudit",
   "demo": "https://autoaudit-umg.mexicocentral.cloudapp.azure.com",

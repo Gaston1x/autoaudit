@@ -183,7 +183,8 @@ scripts/                Instalación y utilidades
 Proyecto del curso **Bases de Datos I** · Facultad de Ingeniería en Sistemas de Información y Ciencias de la Computación,
 **Universidad Mariano Gálvez de Guatemala** · Catedrático: René Ornélyz.
 
-- **Carlos Mendez**
-- **Maycol Ortiz** · [@Gaston1x](https://github.com/Gaston1x)
+- **Carlos Abraham Mendez Asencio**
+- **Maycol Alexander Ortiz Flores** · [@Gaston1x](https://github.com/Gaston1x)
+- **Keila Daniela Silva Aguilar**
 
 Licencia [MIT](LICENSE).

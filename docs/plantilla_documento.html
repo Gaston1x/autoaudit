@@ -47,7 +47,8 @@
   .portada .titulo { font-size: 30pt; font-weight: 800; color: var(--navy); }
   .portada .sub { font-size: 15pt; color: var(--cyan); font-weight: 600; margin-top: 2mm; }
   .portada .tipo { margin-top: 6mm; font-size: 11pt; color: var(--gris); }
-  .portada .datos { width: 120mm; margin: 0 auto; font-size: 10pt; }
+  .portada .datos { width: 150mm; margin: 0 auto; font-size: 10pt; }
+  .portada .datos .carne { white-space: nowrap; }
   .portada .datos td { border: 0; padding: 1mm 2mm; background: none !important; }
   .portada .datos td:first-child { color: var(--gris); width: 35mm; }
 
@@ -70,7 +71,7 @@
   </div>
   <table class="datos">
     <tr><td>Catedrático</td><td>{{ p.catedratico }}</td></tr>
-    <tr><td>Integrantes</td><td>{% for i in p.integrantes %}{{ i.nombre }} — {{ i.carne }}<br>{% endfor %}</td></tr>
+    <tr><td>Integrantes</td><td>{% for i in p.integrantes %}{{ i.nombre }}{% if i.carne %} — <span class="carne">{{ i.carne }}</span>{% endif %}<br>{% endfor %}</td></tr>
     <tr><td>Repositorio</td><td>{{ p.repositorio }}</td></tr>
     {% if p.demo %}<tr><td>Demo en línea</td><td>{{ p.demo }}</td></tr>{% endif %}
     <tr><td>Plataforma</td><td>PostgreSQL 18 · {{ so or 'Ubuntu 26.04 LTS' }} · Python</td></tr>
